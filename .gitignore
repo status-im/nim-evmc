@@ -1,0 +1,5 @@
+# Nim
+nimcache/
+
+# Executables shall be put in an ignored build/ directory
+build/
