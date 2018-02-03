@@ -24,11 +24,11 @@
 #  dynlib libevmjit
 #  cdecl
 #  if defined(windows)
-#    define libevmjit "librocksdb.dll"
+#    define libevmjit "libevmjit.dll"
 #  elif defined(macosx)
-#    define libevmjit "librocksdb.dylib"
+#    define libevmjit "libevmjit.dylib"
 #  else
-#    define libevmjit "librocksdb.so"
+#    define libevmjit "libevmjit.so"
 #  endif
 #  mangle uint32_t uint32
 #  mangle uint16_t uint16

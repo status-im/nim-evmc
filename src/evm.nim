@@ -23,13 +23,13 @@
 {.deadCodeElim: on.}
 when defined(windows):
   const
-    libevmjit* = "librocksdb.dll"
+    libevmjit* = "libevmjit.dll"
 elif defined(macosx):
   const
-    libevmjit* = "librocksdb.dylib"
+    libevmjit* = "libevmjit.dylib"
 else:
   const
-    libevmjit* = "librocksdb.so"
+    libevmjit* = "libevmjit.so"
 ##  BEGIN Python CFFI declarations
 
 const
