@@ -3,3 +3,8 @@ nimcache/
 
 # Executables shall be put in an ignored build/ directory
 build/
+
+# Ignore lib
+*.dll
+*.so
+*.dylib
