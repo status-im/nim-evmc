@@ -1,6 +1,6 @@
 #pragma once
 
-#include <evm.h>
+#include <evmc.h>
 
 #ifdef C2NIM
   #  def EXPORT
@@ -42,7 +42,7 @@ extern "C" {
 /// Create EVMJIT instance.
 ///
 /// @return  The EVMJIT instance.
-EXPORT struct evm_instance* evmjit_create(void);
+EXPORT struct evmc_instance* evmjit_create(void);
 
 #ifdef __cplusplus
 }

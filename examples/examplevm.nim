@@ -12,30 +12,30 @@ proc c_free(p: pointer) {.
 
 
 type ExampleVM = object
-  instance: evm_instance
+  instance: evmc_instance
   verbose: bool
 
-proc evm_destroy(evm: ptr evm_instance) {.cdecl.}=
+proc evmc_destroy(evm: ptr evmc_instance) {.cdecl.}=
   c_free evm
 
 # Example options
 
-proc evm_set_option(instance: ptr evm_instance, name: cstring, value: cstring): cint {.cdecl.}=
+proc evmc_set_option(instance: ptr evmc_instance, name: cstring, value: cstring): cint {.cdecl.}=
   var vm = ExampleVM(instance: instance[])
   if name == "verbose":
     vm.verbose = ($name).parseBool
     # Note: we don't return 1 if not a number or in int range as Nim will throw an exception instead
   return 0
 
-proc evm_release_result(r: ptr evm_result) {.cdecl.}=
-  r[] = evm_result() # Create a new empty evm_result
+proc evmc_release_result(r: ptr evmc_result) {.cdecl.}=
+  r[] = evmc_result() # Create a new empty evmc_result
 
-proc free_result_output_data(r: ptr evm_result) {.cdecl.}=
+proc free_result_output_data(r: ptr evmc_result) {.cdecl.}=
   c_free r.output_data
 
-proc execute(instance: ptr evm_instance; context: ptr evm_context;
-            rev: evm_revision; msg: ptr evm_message; code: ptr uint8;
-            code_size: csize): evm_result {.cdecl.}=
+proc execute(instance: ptr evmc_instance; context: ptr evmc_context;
+            rev: evmc_revision; msg: ptr evmc_message; code: ptr uint8;
+            code_size: csize): evmc_result {.cdecl.}=
   if code_size == 0:
     # In case of empty code return a fancy error message
     let error: cstring =  if rev == EVM_BYZANTIUM: "Welcome to Byzantium"
@@ -79,15 +79,15 @@ proc execute(instance: ptr evm_instance; context: ptr evm_context;
     return
 
   elif code_size == counter.len and $cast[cstring](code) == counter:
-    var value: evm_uint256be
-    var index = evm_uint256be() # Need var to have an address. Initialized to all 0 by default
+    var value: evmc_uint256be
+    var index = evmc_uint256be() # Need var to have an address. Initialized to all 0 by default
     context.fn_table.get_storage(addr value, context, addr msg.destination, addr index)
     value.bytes[31] += 1
     context.fn_table.set_storage(context, addr msg.destination, addr index, addr value)
     result.status_code = EVM_SUCCESS
     return
 
-  result.release = evm_release_result
+  result.release = evmc_release_result
   result.status_code = EVM_FAILURE
   result.gas_left = 0
 
@@ -95,12 +95,12 @@ proc execute(instance: ptr evm_instance; context: ptr evm_context;
     echo "Execution done.\n"
 
 
-proc examplevm_create*(): ptr evm_instance =
-  var init = evm_instance(
+proc examplevm_create*(): ptr evmc_instance =
+  var init = evmc_instance(
     abi_version: EVM_ABI_VERSION,
-    destroy: evm_destroy,
+    destroy: evmc_destroy,
     execute: execute,
-    set_option: evm_set_option
+    set_option: evmc_set_option
   )
   let vm = cast[ptr ExampleVM](c_calloc(1, sizeof(ExampleVM)))
   result = addr vm.instance

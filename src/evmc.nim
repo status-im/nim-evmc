@@ -39,7 +39,7 @@ const
 
 
 type
-  evm_uint256be* {.bycopy.} = object
+  evmc_uint256be* {.bycopy.} = object
     ## Big-endian 256-bit integer.
     ##
     ## 32 bytes of data representing big-endian 256-bit integer. I.e. bytes[0] is
@@ -48,32 +48,32 @@ type
     ## as both 256-bit integers and 256-bit hashes.
     bytes*: array[32, uint8]    ## The 32 bytes of the big-endian integer or hash.
 
-  evm_address* {.bycopy.} = object
+  evmc_address* {.bycopy.} = object
     ## Big-endian 160-bit hash suitable for keeping an Ethereum address.
     bytes*: array[20, uint8]    ## The 20 bytes of the hash.
 
-  evm_call_kind* {.size: sizeof(cint).} = enum
+  evmc_call_kind* {.size: sizeof(cint).} = enum
     ## The kind of call-like instruction.
     EVM_CALL = 0,         ## Request CALL.
     EVM_DELEGATECALL = 1, ## Request DELEGATECALL. The value param ignored.
     EVM_CALLCODE = 2,     ## Request CALLCODE.
     EVM_CREATE = 3        ## Request CREATE. Semantic of some params changes.
 
-  evm_flags* {.size: sizeof(cint).} = enum
+  evmc_flags* {.size: sizeof(cint).} = enum
     ## The flags for ::evm_message.
     EVM_STATIC = 1
 
-  evm_message* {.bycopy.} = object
+  evmc_message* {.bycopy.} = object
     ## The message describing an EVM call,
     ## including a zero-depth calls from a transaction origin.
 
-    destination*: evm_address
+    destination*: evmc_address
     ## The destination of the message.
 
-    sender*: evm_address
+    sender*: evmc_address
     ## The sender of the message
 
-    value*: evm_uint256be
+    value*: evmc_uint256be
     ## The amount of Ether transferred with the message.
 
     input_data*: ptr uint8
@@ -83,7 +83,7 @@ type
     ## The size of the message input data.
     ## If input_data is NULL this MUST be 0.
 
-    code_hash*: evm_uint256be
+    code_hash*: evmc_uint256be
     ## The optional hash of the code of the destination account.
     ## The null hash MUST be used when not specified.
 
@@ -93,24 +93,24 @@ type
     depth*: int32
     ## The call depth.
 
-    kind*: evm_call_kind
+    kind*: evmc_call_kind
     ## The kind of the call. For zero-depth calls ::EVM_CALL SHOULD be used.
 
     flags*: uint32
     ## Additional flags modifying the call execution behavior.
     ## In the current version the only valid values are ::EVM_STATIC or 0.
 
-  evm_tx_context* {.bycopy.} = object
+  evmc_tx_context* {.bycopy.} = object
     ## The transaction and block data for execution.
-    tx_gas_price*: evm_uint256be     ## The transaction gas price.
-    tx_origin*: evm_address          ## The transaction origin account.
-    block_coinbase*: evm_address     ## The miner of the block.
+    tx_gas_price*: evmc_uint256be     ## The transaction gas price.
+    tx_origin*: evmc_address          ## The transaction origin account.
+    block_coinbase*: evmc_address     ## The miner of the block.
     block_number*: int64             ## The block number.
     block_timestamp*: int64          ## The block timestamp.
     block_gas_limit*: int64          ## The block gas limit.
-    block_difficulty*: evm_uint256be ## The block difficulty.
+    block_difficulty*: evmc_uint256be ## The block difficulty.
 
-  evm_get_tx_context_fn* = proc (result: ptr evm_tx_context; context: ptr evm_context) {.cdecl.}
+  evmc_get_tx_context_fn* = proc (result: ptr evmc_tx_context; context: ptr evmc_context) {.cdecl.}
     ## Get transaction context callback function.
     ##
     ## This callback function is used by an EVM to retrieve the transaction and
@@ -121,7 +121,7 @@ type
     ## @param      context  The pointer to the Host execution context.
     ##                      @see ::evm_context.
 
-  evm_get_block_hash_fn* = proc (result: ptr evm_uint256be; context: ptr evm_context;
+  evmc_get_block_hash_fn* = proc (result: ptr evmc_uint256be; context: ptr evmc_context;
                               number: int64) {.cdecl.}
   ## Get block hash callback function..
   ##
@@ -133,7 +133,7 @@ type
   ## @param      number   The block number. Must be a value between
   ##                      (and including) 0 and 255.
 
-  evm_status_code* {.size: sizeof(cint).} = enum
+  evmc_status_code* {.size: sizeof(cint).} = enum
     ## The execution status code.
     EVM_INTERNAL_ERROR = -2,
     ## EVM implementation internal error.
@@ -161,7 +161,7 @@ type
     EVM_REVERT = 7,               ## Execution terminated with REVERT opcode.
     EVM_STATIC_MODE_ERROR = 8     ## Tried to execute an operation which is restricted in static mode.
 
-  evm_release_result_fn* = proc (result: ptr evm_result) {.cdecl.}
+  evmc_release_result_fn* = proc (result: ptr evmc_result) {.cdecl.}
     ## Releases resources assigned to an execution result.
     ##
     ## This function releases memory (and other resources, if any) assigned to the
@@ -171,24 +171,24 @@ type
     ##                result itself it not modified by this function, but becomes
     ##                invalid and user should discard it as well.
 
-  evm_result* {.bycopy.} = object
+  evmc_result* {.bycopy.} = object
     ## The EVM code execution result.
-    status_code*: evm_status_code ## The execution status code.
+    status_code*: evmc_status_code ## The execution status code.
 
     gas_left*: int64
       ## The amount of gas left after the execution.
       ##
-      ## If evm_result::code is not ::EVM_SUCCESS nor ::EVM_REVERT
+      ## If evmc_result::code is not ::EVM_SUCCESS nor ::EVM_REVERT
       ## the value MUST be 0.
 
     output_data*: ptr uint8
       ## The reference to output data.
       ##
-      ## The output contains data coming from RETURN opcode (iff evm_result::code
+      ## The output contains data coming from RETURN opcode (iff evmc_result::code
       ## field is ::EVM_SUCCESS) or from REVERT opcode.
       ##
       ## The memory containing the output data is owned by EVM and has to be
-      ## freed with evm_result::release().
+      ## freed with evmc_result::release().
       ##
       ## This MAY be NULL.
 
@@ -197,7 +197,7 @@ type
     ##
     ## If output_data is NULL this MUST be 0.
 
-    release*: evm_release_result_fn
+    release*: evmc_release_result_fn
     ## The pointer to a function releasing all resources associated with
     ## the result object.
     ##
@@ -209,7 +209,7 @@ type
     ##
     ## The suggested code pattern for releasing EVM results:
     ## @code
-    ## struct evm_result result = ...;
+    ## struct evmc_result result = ...;
     ## if (result.release)
     ##     result.release(&result);
     ## @endcode
@@ -218,40 +218,40 @@ type
     ## It works similarly to C++ virtual destructor. Attaching the release
     ## function to the result itself allows EVM composition.
 
-    create_address*: evm_address
+    create_address*: evmc_address
     ## The address of the contract created by CREATE opcode.
     ##
     ## This field has valid value only if the result describes successful
     ## CREATE (evm_result::status_code is ::EVM_SUCCESS).
 
     padding*: array[4, uint8]
-    ## Reserved data that MAY be used by a evm_result object creator.
+    ## Reserved data that MAY be used by a evmc_result object creator.
     ##
     ## This reserved 4 bytes together with 20 bytes from create_address form
-    ## 24 bytes of memory called "optional data" within evm_result struct
-    ## to be optionally used by the evm_result object creator.
+    ## 24 bytes of memory called "optional data" within evmc_result struct
+    ## to be optionally used by the evmc_result object creator.
     ##
-    ## @see evm_result_optional_data, evm_get_optional_data().
+    ## @see evmc_result_optional_data, evmc_get_optional_data().
     ##
-    ## Also extends the size of the evm_result to 64 bytes (full cache line).
+    ## Also extends the size of the evmc_result to 64 bytes (full cache line).
 
-  evm_result_optional_data* {.bycopy.} = object {.union.}
-    ## The union representing evm_result "optional data".
+  evmc_result_optional_data* {.bycopy.} = object {.union.}
+    ## The union representing evmc_result "optional data".
     ##
-    ## The evm_result struct contains 24 bytes of optional data that can be
+    ## The evmc_result struct contains 24 bytes of optional data that can be
     ## reused by the obejct creator if the object does not contain
-    ## evm_result::create_address.
+    ## evmc_result::create_address.
     ##
     ## An EVM implementation MAY use this memory to keep additional data
     ## when returning result from ::evm_execute_fn.
     ## The host application MAY use this memory to keep additional data
     ## when returning result of performed calls from ::evm_call_fn.
     ##
-    ## @see evm_get_optional_data(), evm_get_const_optional_data().
+    ## @see evmc_get_optional_data(), evmc_get_const_optional_data().
     bytes*: array[24, uint8]
     pointer*: pointer
 
-  evm_account_exists_fn* = proc (context: ptr evm_context; address: ptr evm_address): cint {.cdecl.}
+  evmc_account_exists_fn* = proc (context: ptr evmc_context; address: ptr evmc_address): cint {.cdecl.}
     ## Check account existence callback function
     ##
     ## This callback function is used by the EVM to check if
@@ -261,8 +261,8 @@ type
     ## @param      address  The address of the account the query is about.
     ## @return              1 if exists, 0 otherwise.
 
-  evm_get_storage_fn* = proc (result: ptr evm_uint256be; context: ptr evm_context;
-                              address: ptr evm_address; key: ptr evm_uint256be) {.cdecl.}
+  evmc_get_storage_fn* = proc (result: ptr evmc_uint256be; context: ptr evmc_context;
+                              address: ptr evmc_address; key: ptr evmc_uint256be) {.cdecl.}
     ## Get storage callback function.
     ##
     ## This callback function is used by an EVM to query the given contract
@@ -273,8 +273,8 @@ type
     ## @param      address  The address of the contract.
     ## @param      key      The index of the storage entry.
 
-  evm_set_storage_fn* = proc (context: ptr evm_context; address: ptr evm_address;
-                              key: ptr evm_uint256be; value: ptr evm_uint256be) {.cdecl.}
+  evmc_set_storage_fn* = proc (context: ptr evmc_context; address: ptr evmc_address;
+                              key: ptr evmc_uint256be; value: ptr evmc_uint256be) {.cdecl.}
     ## Set storage callback function.
     ##
     ## This callback function is used by an EVM to update the given contract
@@ -285,8 +285,8 @@ type
     ## @param key      The index of the storage entry.
     ## @param value    The value to be stored.
 
-  evm_get_balance_fn* = proc (result: ptr evm_uint256be; context: ptr evm_context;
-                              address: ptr evm_address) {.cdecl.}
+  evmc_get_balance_fn* = proc (result: ptr evmc_uint256be; context: ptr evmc_context;
+                              address: ptr evmc_address) {.cdecl.}
     ## Get balance callback function.
     ##
     ## This callback function is used by an EVM to query the balance of the given
@@ -296,8 +296,8 @@ type
     ##                      @see ::evm_context.
     ## @param      address  The address.
 
-  evm_get_code_fn* = proc (result_code: ptr ptr uint8; context: ptr evm_context;
-                            address: ptr evm_address): csize {.cdecl.}
+  evmc_get_code_fn* = proc (result_code: ptr ptr uint8; context: ptr evmc_context;
+                            address: ptr evmc_address): csize {.cdecl.}
     ## Get code callback function.
     ##
     ## This callback function is used by an EVM to get the code of a contract of
@@ -311,8 +311,8 @@ type
     ## @param      address      The address of the contract.
     ## @return                  The size of the code.
 
-  evm_selfdestruct_fn* = proc (context: ptr evm_context; address: ptr evm_address;
-                                beneficiary: ptr evm_address) {.cdecl.}
+  evmc_selfdestruct_fn* = proc (context: ptr evmc_context; address: ptr evmc_address;
+                                beneficiary: ptr evmc_address) {.cdecl.}
     ## Selfdestruct callback function.
     ##
     ## This callback function is used by an EVM to SELFDESTRUCT given contract.
@@ -324,8 +324,8 @@ type
     ## @param beneficiary  The address where the remaining ETH is going to be
     ##                     transferred.
 
-  evm_emit_log_fn* = proc (context: ptr evm_context; address: ptr evm_address;
-                            data: ptr uint8; data_size: csize; topics: ptr evm_uint256be;
+  evmc_emit_log_fn* = proc (context: ptr evmc_context; address: ptr evmc_address;
+                            data: ptr uint8; data_size: csize; topics: ptr evmc_uint256be;
                             topics_count: csize) {.cdecl.}
     ## Log callback function.
     ##
@@ -340,8 +340,8 @@ type
     ## @param topics_count  The number of the topics. Valid values are between
     ##                      0 and 4 inclusively.
 
-  evm_call_fn* = proc (result: ptr evm_result; context: ptr evm_context;
-                    msg: ptr evm_message) {.cdecl.}
+  evmc_call_fn* = proc (result: ptr evmc_result; context: ptr evmc_context;
+                    msg: ptr evmc_message) {.cdecl.}
     ## Pointer to the callback function supporting EVM calls.
     ##
     ## @param[out] result  The result of the call. The result object is not
@@ -351,25 +351,25 @@ type
     ##                     @see ::evm_context.
     ## @param      msg     Call parameters. @see ::evm_message.
 
-  evm_context_fn_table* {.bycopy.} = object
+  evmc_context_fn_table* {.bycopy.} = object
     ## The context interface.
     ##
     ## The set of all callback functions expected by EVM instances. This is C
     ## realisation of vtable for OOP interface (only virtual methods, no data).
     ## Host implementations SHOULD create constant singletons of this (similarly
     ## to vtables) to lower the maintenance and memory management cost.
-    account_exists*: evm_account_exists_fn
-    get_storage*: evm_get_storage_fn
-    set_storage*: evm_set_storage_fn
-    get_balance*: evm_get_balance_fn
-    get_code*: evm_get_code_fn
-    selfdestruct*: evm_selfdestruct_fn
-    call*: evm_call_fn
-    get_tx_context*: evm_get_tx_context_fn
-    get_block_hash*: evm_get_block_hash_fn
-    emit_log*: evm_emit_log_fn
+    account_exists*: evmc_account_exists_fn
+    get_storage*: evmc_get_storage_fn
+    set_storage*: evmc_set_storage_fn
+    get_balance*: evmc_get_balance_fn
+    get_code*: evmc_get_code_fn
+    selfdestruct*: evmc_selfdestruct_fn
+    call*: evmc_call_fn
+    get_tx_context*: evmc_get_tx_context_fn
+    get_block_hash*: evmc_get_block_hash_fn
+    emit_log*: evmc_emit_log_fn
 
-  evm_context* {.bycopy.} = object
+  evmc_context* {.bycopy.} = object
     ## Execution context managed by the Host.
     ##
     ## The Host MUST pass the pointer to the execution context to
@@ -378,15 +378,15 @@ type
     ## The context MUST contain at least the function table defining the context
     ## callback interface.
     ## Optionally, The Host MAY include in the context additional data.
-    fn_table*: ptr evm_context_fn_table ## Function table defining the context interface (vtable).
+    fn_table*: ptr evmc_context_fn_table ## Function table defining the context interface (vtable).
 
-  evm_destroy_fn* = proc (evm: ptr evm_instance) {.cdecl.}
+  evmc_destroy_fn* = proc (evm: ptr evmc_instance) {.cdecl.}
     ## Forward declaration.
     ## Destroys the EVM instance.
     ##
     ## @param evm  The EVM instance to be destroyed.
 
-  evm_set_option_fn* = proc (evm: ptr evm_instance; name: cstring; value: cstring): cint {.cdecl.}
+  evmc_set_option_fn* = proc (evm: ptr evmc_instance; name: cstring; value: cstring): cint {.cdecl.}
     ## Configures the EVM instance.
     ##
     ## Allows modifying options of the EVM instance.
@@ -399,7 +399,7 @@ type
     ## @param value  The new option value. NULL-terminated string. Cannot be NULL.
     ## @return       1 if the option set successfully, 0 otherwise.
 
-  evm_revision* {.size: sizeof(cint).} = enum
+  evmc_revision* {.size: sizeof(cint).} = enum
     ## EVM revision.
     ##
     ## The revision of the EVM specification based on the Ethereum
@@ -407,9 +407,9 @@ type
     EVM_FRONTIER = 0, EVM_HOMESTEAD = 1, EVM_TANGERINE_WHISTLE = 2,
     EVM_SPURIOUS_DRAGON = 3, EVM_BYZANTIUM = 4, EVM_CONSTANTINOPLE = 5
 
-  evm_execute_fn* = proc (instance: ptr evm_instance; context: ptr evm_context;
-                          rev: evm_revision; msg: ptr evm_message; code: ptr uint8;
-                          code_size: csize): evm_result {.cdecl.}
+  evmc_execute_fn* = proc (instance: ptr evmc_instance; context: ptr evmc_context;
+                          rev: evmc_revision; msg: ptr evmc_message; code: ptr uint8;
+                          code_size: csize): evmc_result {.cdecl.}
     ## Generates and executes machine code for given EVM bytecode.
     ##
     ## All the fun is here. This function actually does something useful.
@@ -423,7 +423,7 @@ type
     ## @param code_size   The length of the bytecode.
     ## @return            All execution results.
 
-  evm_instance* {.bycopy.} = object
+  evmc_instance* {.bycopy.} = object
     ## The EVM instance.
     ##
     ## Defines the base struct of the EVM implementation.
@@ -435,23 +435,23 @@ type
     ## represented by this file is in ::EVM_ABI_VERSION.
     ##
     ## @todo Consider removing this field.
-    destroy*: evm_destroy_fn
+    destroy*: evmc_destroy_fn
     ## Pointer to function destroying the EVM instance.
-    execute*: evm_execute_fn
+    execute*: evmc_execute_fn
     ## Pointer to function executing a code by the EVM instance.
-    set_option*: evm_set_option_fn
+    set_option*: evmc_set_option_fn
     ## Optional pointer to function modifying VM's options.
     ##
     ## If the VM does not support this feature the pointer can be NULL.
 
-proc evm_get_optional_data*(r: ptr evm_result): ptr evm_result_optional_data {.inline, cdecl.} =
-  ## Provides read-write access to evm_result "optional data".
-  return cast[ptr evm_result_optional_data](addr(r.create_address))
+proc evmc_get_optional_data*(r: ptr evmc_result): ptr evmc_result_optional_data {.inline, cdecl.} =
+  ## Provides read-write access to evmc_result "optional data".
+  return cast[ptr evmc_result_optional_data](addr(r.create_address))
 
-proc evm_get_const_optional_data*(r: ptr evm_result): ptr evm_result_optional_data {.inline, cdecl.} =
-  ## Provides read-only access to evm_result "optional data".
+proc evmc_get_const_optional_data*(r: ptr evmc_result): ptr evmc_result_optional_data {.inline, cdecl.} =
+  ## Provides read-only access to evmc_result "optional data".
   # TODO test writetracking: {.writes: [].} https://nim-lang.org/araq/writetracking.html
-  return cast[ptr evm_result_optional_data](addr(r.create_address))
+  return cast[ptr evmc_result_optional_data](addr(r.create_address))
 
 
 ##  END Python CFFI declarations
@@ -463,6 +463,6 @@ proc evm_get_const_optional_data*(r: ptr evm_result): ptr evm_result_optional_da
 ##
 ## @return  EVM instance or NULL indicating instance creation failure.
 ##
-## struct evm_instance* examplevm_create(void);
+## struct evmc_instance* examplevm_create(void);
 
 
