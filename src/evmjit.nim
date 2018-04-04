@@ -9,10 +9,10 @@ else:
   const
     libevmjit* = "libevmjit.so"
 
-import evm
-export evm
+import evmc
+export evmc
 
-proc evmjit_create*(): ptr evm_instance {.cdecl, importc: "evmjit_create", dynlib: libevmjit.}
+proc evmjit_create*(): ptr evmc_instance {.cdecl, importc: "evmjit_create", dynlib: libevmjit.}
   ## Create EVMJIT instance.
   ##
   ## @return  The EVMJIT instance.
