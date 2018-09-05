@@ -1,4 +1,8 @@
-**Nim Ethereum EVM-C**
+# Nim Ethereum EVM-C
+
+[![License: Apache](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+![Stability: experimental](https://img.shields.io/badge/stability-experimental-orange.svg)
 
 # Introduction
 
@@ -11,9 +15,9 @@ So far, it has been tested with the [EVM JIT](https://github.com/ethereum/evmjit
 You need to build EVM JIT as a shared library, by replacing ```add_library(evmjit ${SOURCES} gen/BuildInfo.gen.h)```
 with `add_library(evmjit SHARED ${SOURCES} gen/BuildInfo.gen.h)` in libevmjit/CMakeLists.
 
-# License
+## License
 
-May be distributed under one or both of the following:
+Licensed under both of the following:
 
-* [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0)
-* [MIT license](http://opensource.org/licenses/MIT)
+ * Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+ * MIT license: [LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT
