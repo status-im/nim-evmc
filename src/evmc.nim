@@ -386,40 +386,40 @@ type
   # to vtables) to lower the maintenance and memory management cost.
   evmc_host_interface* = object
     # Check account existence callback function.
-    account_exists: evmc_account_exists_fn
+    account_exists*: evmc_account_exists_fn
 
     # Get storage callback function.
-    get_storage: evmc_get_storage_fn
+    get_storage*: evmc_get_storage_fn
 
     # Set storage callback function.
-    set_storage: evmc_set_storage_fn
+    set_storage*: evmc_set_storage_fn
 
     # Get balance callback function.
-    get_balance: evmc_get_balance_fn
+    get_balance*: evmc_get_balance_fn
 
     # Get code size callback function.
-    get_code_size: evmc_get_code_size_fn
+    get_code_size*: evmc_get_code_size_fn
 
     # Get code hash callback function.
-    get_code_hash: evmc_get_code_hash_fn
+    get_code_hash*: evmc_get_code_hash_fn
 
     # Copy code callback function.
-    copy_code: evmc_copy_code_fn
+    copy_code*: evmc_copy_code_fn
 
     # Selfdestruct callback function.
-    selfdestruct: evmc_selfdestruct_fn
+    selfdestruct*: evmc_selfdestruct_fn
 
     # Call callback function.
-    call: evmc_call_fn
+    call*: evmc_call_fn
 
     # Get transaction context callback function.
-    get_tx_context: evmc_get_tx_context_fn
+    get_tx_context*: evmc_get_tx_context_fn
 
     # Get block hash callback function.
-    get_block_hash: evmc_get_block_hash_fn
+    get_block_hash*: evmc_get_block_hash_fn
 
     # Emit log callback function.
-    emit_log: evmc_emit_log_fn
+    emit_log*: evmc_emit_log_fn
 
   # Destroys the VM instance.
   #
@@ -530,29 +530,29 @@ type
     #
     # Can be used to detect ABI incompatibilities.
     # The EVMC ABI version represented by this file is in ::EVMC_ABI_VERSION.
-    abi_version: cint
+    abi_version*: cint
 
     # The name of the EVMC VM implementation.
     #
     # It MUST be a NULL-terminated not empty string.
     # The content MUST be UTF-8 encoded (this implies ASCII encoding is also allowed).
-    name: cstring
+    name*: cstring
 
     # The version of the EVMC VM implementation, e.g. "1.2.3b4".
     #
     # It MUST be a NULL-terminated not empty string.
     # The content MUST be UTF-8 encoded (this implies ASCII encoding is also allowed).
-    version: cstring
+    version*: cstring
 
     # Pointer to function destroying the VM instance.
     #
     # This is a mandatory method and MUST NOT be set to NULL.
-    destroy: evmc_destroy_fn
+    destroy*: evmc_destroy_fn
 
     # Pointer to function executing a code by the VM instance.
     #
     # This is a mandatory method and MUST NOT be set to NULL.
-    execute: evmc_execute_fn
+    execute*: evmc_execute_fn
 
     # A method returning capabilities supported by the VM instance.
     #
@@ -562,12 +562,12 @@ type
     # it has called the set_option().
     #
     # This is a mandatory method and MUST NOT be set to NULL.
-    get_capabilities: evmc_get_capabilities_fn
+    get_capabilities*: evmc_get_capabilities_fn
 
     # Optional pointer to function modifying VM's options.
     #
     #  If the VM does not support this feature the pointer can be NULL.
-    set_option: evmc_set_option_fn
+    set_option*: evmc_set_option_fn
 
 const
   # The VM is capable of executing EVM1 bytecode.
