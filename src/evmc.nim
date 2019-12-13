@@ -80,7 +80,7 @@ type
     create2_salt*: evmc_bytes32
 
   # The transaction and block data for execution.
-  evmc_tx_context = object
+  evmc_tx_context* = object
     tx_gas_price*    : evmc_uint256be # The transaction gas price.
     tx_origin*       : evmc_address   # The transaction origin account.
     block_coinbase*  : evmc_address   # The miner of the block.
@@ -424,7 +424,7 @@ type
   # Destroys the VM instance.
   #
   # @param vm  The VM instance to be destroyed.
-  evmc_destroy_fn* = proc(vm: var evmc_vm)
+  evmc_destroy_fn* = proc(vm: var evmc_vm) {.cdecl.}
 
   # Possible outcomes of evmc_set_option.
   evmc_set_option_result* {.size: sizeof(cint).} = enum
