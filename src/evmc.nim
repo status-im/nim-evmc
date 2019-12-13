@@ -673,8 +673,8 @@ const
   # The maximum EVM revision supported.
   EVMC_MAX_REVISION* = EVMC_BERLIN
 
-proc incl*(a: var evmc_capabilities, b: evmc_capabilities) =
+proc incl*(a: var evmc_capabilities, b: evmc_capabilities) {.inline.} =
   a = evmc_capabilities(a.uint32 or b.uint32)
 
-proc excl*(a: var evmc_capabilities, b: evmc_capabilities) =
+proc excl*(a: var evmc_capabilities, b: evmc_capabilities) {.inline.} =
   a = evmc_capabilities(a.uint32 and (not b.uint32))
