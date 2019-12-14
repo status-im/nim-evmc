@@ -16,6 +16,16 @@ const
   EVMC_ABI_VERSION* = 7.cint
 
 type
+  # SPECIAL NOTE
+  # EVMC adopt C99 standard, and one of it's interface using
+  # C99 'bool' as return type. Nowhere in the C documentation
+  # mentions about it's size.
+  # chfast@ethereum/evmc told me about this "https://godbolt.org/z/marD9R"
+  # lucky for us, in practice C compilers agree to use one byte long for C99 bool.
+  # Nim sizeof(bool) also == 1.
+  # but still we need to be careful about this though.
+  c99bool* = bool
+
   # The fixed size array of 32 bytes.
   # 32 bytes of data capable of storing e.g. 256-bit hashes.
   evmc_bytes32* = object
@@ -244,7 +254,7 @@ type
   # @param context  The pointer to the Host execution context.
   # @param address  The address of the account the query is about.
   # @return         true if exists, false otherwise.
-  evmc_account_exists_fn* = proc(context: evmc_host_context, address: evmc_address): bool {.cdecl.}
+  evmc_account_exists_fn* = proc(context: evmc_host_context, address: evmc_address): c99bool {.cdecl.}
 
   #  Get storage callback function.
   #
