@@ -29,14 +29,14 @@ type
   # The fixed size array of 32 bytes.
   # 32 bytes of data capable of storing e.g. 256-bit hashes.
   evmc_bytes32* = object
-    bytes: array[32, byte]
+    bytes*: array[32, byte]
 
   # The alias for evmc_bytes32 to represent a big-endian 256-bit integer.
   evmc_uint256be* = evmc_bytes32
 
   # Big-endian 160-bit hash suitable for keeping an Ethereum address.
   evmc_address* = object
-    bytes: array[20, byte]
+    bytes*: array[20, byte]
 
   # The kind of call-like instruction.
   evmc_call_kind* {.size: sizeof(cint).} = enum
@@ -434,7 +434,7 @@ type
   # Destroys the VM instance.
   #
   # @param vm  The VM instance to be destroyed.
-  evmc_destroy_fn* = proc(vm: var evmc_vm) {.cdecl.}
+  evmc_destroy_fn* = proc(vm: ptr evmc_vm) {.cdecl.}
 
   # Possible outcomes of evmc_set_option.
   evmc_set_option_result* {.size: sizeof(cint).} = enum
@@ -453,7 +453,7 @@ type
   # @param name   The option name. NULL-terminated string. Cannot be NULL.
   # @param value  The new option value. NULL-terminated string. Cannot be NULL.
   # @return       The outcome of the operation.
-  evmc_set_option_fn* = proc(vm: var evmc_vm, name, value: cstring): evmc_set_option_result {.cdecl.}
+  evmc_set_option_fn* = proc(vm: ptr evmc_vm, name, value: cstring): evmc_set_option_result {.cdecl.}
 
   # EVM revision.
   #
@@ -513,7 +513,7 @@ type
   # @param code       The reference to the code to be executed. This argument MAY be NULL.
   # @param code_size  The length of the code. If @p code is NULL this argument MUST be 0.
   # @return           The execution result.
-  evmc_execute_fn* = proc(vm: var evmc_vm, host: evmc_host_interface,
+  evmc_execute_fn* = proc(vm: ptr evmc_vm, host: ptr evmc_host_interface,
                           context: evmc_host_context, rev: evmc_revision,
                           msg: evmc_message, code: ptr byte, code_size: uint): evmc_result {.cdecl.}
 
@@ -530,7 +530,7 @@ type
   #
   # @param vm  The VM instance.
   # @return    The supported capabilities of the VM. @see evmc_capabilities.
-  evmc_get_capabilities_fn* = proc(vm: evmc_vm): evmc_capabilities {.cdecl.}
+  evmc_get_capabilities_fn* = proc(vm: ptr evmc_vm): evmc_capabilities {.cdecl.}
 
   # The VM instance.
   #
@@ -688,3 +688,8 @@ proc incl*(a: var evmc_capabilities, b: evmc_capabilities) {.inline.} =
 
 proc excl*(a: var evmc_capabilities, b: evmc_capabilities) {.inline.} =
   a = evmc_capabilities(a.uint32 and (not b.uint32))
+
+proc contains*(a, b: evmc_capabilities): bool {.inline.} =
+  (a.uint32 and b.uint32) != 0
+
+proc `==`*(a, b: evmc_status_code): bool {.borrow.}

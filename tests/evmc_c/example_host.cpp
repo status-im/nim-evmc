@@ -159,7 +159,6 @@ public:
     }
 };
 
-
 extern "C" {
 
 const evmc_host_interface* example_host_get_interface()
@@ -169,7 +168,14 @@ const evmc_host_interface* example_host_get_interface()
 
 evmc_host_context* example_host_create_context(evmc_tx_context tx_context)
 {
-    auto host = new ExampleHost{tx_context};
+    evmc::accounts accounts;
+    evmc::account acc;
+    evmc_address addr = {{0, 1, 2}};
+    acc.balance = {{1, 0}};
+    acc.code = {10, 11, 12, 13, 14, 15};
+    accounts[addr] = acc;
+
+    auto host = new ExampleHost{tx_context, accounts};
     return host->to_context();
 }
 
