@@ -113,8 +113,8 @@ proc evmcSetOptionImpl(vm: ptr evmc_vm, name, value: cstring): evmc_set_option_r
 proc evmcExecuteImpl(vm: ptr evmc_vm, host: ptr evmc_host_interface,
                           ctx: HostContext, rev: evmc_revision,
                           msg: evmc_message, code: ptr byte, code_size: uint): evmc_result {.cdecl.} =
-  
-  var the_code = "\x43\x60\x00\x55\x43\x60\x00\x52\x59\x60\x00\xf3"  
+
+  var the_code = "\x43\x60\x00\x55\x43\x60\x00\x52\x59\x60\x00\xf3"
   if (code_size.int == the_code.len) and equalMem(code, the_code[0].addr, code_size):
     let tx_context = ctx.tx_context
     let output_size = 20
@@ -131,7 +131,7 @@ proc evmcExecuteImpl(vm: ptr evmc_vm, host: ptr evmc_host_interface,
     result.output_size = output_size.uint
     result.release = evmcReleaseResultImpl
     return
-        
+
   result.status_code = EVMC_FAILURE
   result.gas_left = 0
 
@@ -156,7 +156,7 @@ proc init_host_interface(): evmc_host_interface =
   {.emit: [result.get_tx_context, " = (", evmc_get_tx_context_fn, ")", evmcGetTxContextImpl, ";" ].}
   {.emit: [result.get_block_hash, " = (", evmc_get_block_hash_fn, ")", evmcGetBlockHashImpl, ";" ].}
   {.emit: [result.emit_log, " = (", evmc_emit_log_fn, ")", evmcEmitLogImpl, ";" ].}
-  
+
   #result.account_exists = cast[evmc_account_exists_fn](evmcAccountExistsImpl)
   #result.get_storage = cast[evmc_get_storage_fn](evmcGetStorageImpl)
   #result.set_storage = cast[evmc_set_storage_fn](evmcSetStorageImpl)
@@ -179,7 +179,10 @@ proc init(vm: var evmc_vm) {.exportc, cdecl.} =
   vm.name = EVMC_HOST_NAME
   vm.version = EVMC_VM_VERSION
   vm.destroy = evmcDestroyImpl
-  vm.execute = cast[evmc_execute_fn](evmcExecuteImpl)
+
+  {.emit: [vm.execute, " = (", evmc_execute_fn, ")", evmcExecuteImpl, ";" ].}
+  #vm.execute = cast[evmc_execute_fn](evmcExecuteImpl)
+
   vm.get_capabilities = evmcGetCapabilitiesImpl
   vm.set_option = evmcSetOptionImpl
 
