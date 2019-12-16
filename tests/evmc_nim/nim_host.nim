@@ -143,18 +143,32 @@ proc evmcDestroyImpl(vm: ptr evmc_vm) {.cdecl.} =
   dealloc(vm)
 
 proc init_host_interface(): evmc_host_interface =
-  result.account_exists = cast[evmc_account_exists_fn](evmcAccountExistsImpl)
-  result.get_storage = cast[evmc_get_storage_fn](evmcGetStorageImpl)
-  result.set_storage = cast[evmc_set_storage_fn](evmcSetStorageImpl)
-  result.get_balance = cast[evmc_get_balance_fn](evmcGetBalanceImpl)
-  result.get_code_size = cast[evmc_get_code_size_fn](evmcGetCodeSizeImpl)
-  result.get_code_hash = cast[evmc_get_code_hash_fn](evmcGetCodeHashImpl)
-  result.copy_code = cast[evmc_copy_code_fn](evmcCopyCodeImpl)
-  result.selfdestruct = cast[evmc_selfdestruct_fn](evmcSelfdestructImpl)
-  result.call = cast[evmc_call_fn](evmcCallImpl)
-  result.get_tx_context = cast[evmc_get_tx_context_fn](evmcGetTxContextImpl)
-  result.get_block_hash = cast[evmc_get_block_hash_fn](evmcGetBlockHashImpl)
-  result.emit_log = cast[evmc_emit_log_fn](evmcEmitLogImpl)
+  # workaround for nim cpp codegen bug
+  {.emit: [result.account_exists, " = (", evmc_account_exists_fn, ")", evmcAccountExistsImpl, ";" ].}
+  {.emit: [result.get_storage, " = (", evmc_get_storage_fn, ")", evmcGetStorageImpl, ";" ].}
+  {.emit: [result.set_storage, " = (", evmc_set_storage_fn, ")", evmcSetStorageImpl, ";" ].}
+  {.emit: [result.get_balance, " = (", evmc_get_balance_fn, ")", evmcGetBalanceImpl, ";" ].}
+  {.emit: [result.get_code_size, " = (", evmc_get_code_size_fn, ")", evmcGetCodeSizeImpl, ";" ].}
+  {.emit: [result.get_code_hash, " = (", evmc_get_code_hash_fn, ")", evmcGetCodeHashImpl, ";" ].}
+  {.emit: [result.copy_code, " = (", evmc_copy_code_fn, ")", evmcCopyCodeImpl, ";" ].}
+  {.emit: [result.selfdestruct, " = (", evmc_selfdestruct_fn, ")", evmcSelfdestructImpl, ";" ].}
+  {.emit: [result.call, " = (", evmc_call_fn, ")", evmcCallImpl, ";" ].}
+  {.emit: [result.get_tx_context, " = (", evmc_get_tx_context_fn, ")", evmcGetTxContextImpl, ";" ].}
+  {.emit: [result.get_block_hash, " = (", evmc_get_block_hash_fn, ")", evmcGetBlockHashImpl, ";" ].}
+  {.emit: [result.emit_log, " = (", evmc_emit_log_fn, ")", evmcEmitLogImpl, ";" ].}
+  
+  #result.account_exists = cast[evmc_account_exists_fn](evmcAccountExistsImpl)
+  #result.get_storage = cast[evmc_get_storage_fn](evmcGetStorageImpl)
+  #result.set_storage = cast[evmc_set_storage_fn](evmcSetStorageImpl)
+  #result.get_balance = cast[evmc_get_balance_fn](evmcGetBalanceImpl)
+  #result.get_code_size = cast[evmc_get_code_size_fn](evmcGetCodeSizeImpl)
+  #result.get_code_hash = cast[evmc_get_code_hash_fn](evmcGetCodeHashImpl)
+  #result.copy_code = cast[evmc_copy_code_fn](evmcCopyCodeImpl)
+  #result.selfdestruct = cast[evmc_selfdestruct_fn](evmcSelfdestructImpl)
+  #result.call = cast[evmc_call_fn](evmcCallImpl)
+  #result.get_tx_context = cast[evmc_get_tx_context_fn](evmcGetTxContextImpl)
+  #result.get_block_hash = cast[evmc_get_block_hash_fn](evmcGetBlockHashImpl)
+  #result.emit_log = cast[evmc_emit_log_fn](evmcEmitLogImpl)
 
 const
   EVMC_HOST_NAME = "example_vm"
