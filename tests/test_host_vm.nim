@@ -1,4 +1,5 @@
 import ../evmc/[evmc, evmc_nim], unittest
+import evmc_nim/nim_host
 import stew/byteutils
 
 {.compile: "evmc_c/example_host.cpp".}
@@ -10,9 +11,14 @@ proc example_host_create_context(tx_context: evmc_tx_context): evmc_host_context
 proc example_host_destroy_context(context: evmc_host_context) {.importc, cdecl.}
 proc evmc_create_example_vm(): ptr evmc_vm {.importc, cdecl.}
 
-proc main() =
-  var vm = evmc_create_example_vm()
-  var host = example_host_get_interface()
+proc nim_host_get_interface(): ptr evmc_host_interface {.importc, cdecl.}
+proc nim_host_create_context(tx_context: evmc_tx_context): evmc_host_context {.importc, cdecl.}
+proc nim_host_destroy_context(context: evmc_host_context) {.importc, cdecl.}
+proc nim_create_example_vm(): ptr evmc_vm {.importc, cdecl.}
+
+template runTest(testName: string, create_vm, get_host_interface, create_host_context, destroy_host_context: untyped) =
+  var vm = create_vm()
+  var host = get_host_interface()
   var code = hexToSeqByte("4360005543600052596000f3")
   var input = "Hello World!"
   const gas = 200000'i64
@@ -39,10 +45,10 @@ proc main() =
     depth: 0
   )
 
-  var ctx = example_host_create_context(tx_context)
+  var ctx = create_host_context(tx_context)
   var hc = HostContext.init(host, ctx)
 
-  suite "EVMC Nim to C API, host interface tests":
+  suite testName & ", host interface tests":
     setup:
       var
         key: evmc_bytes32
@@ -104,12 +110,18 @@ proc main() =
       check equalMem(res.output_data, msg.input_data, msg.input_size)
       # no need to release the result, it's a fake one
 
-  suite "EVMC Nim to C API, vm interface tests":
+  suite testName & ", vm interface tests":
     setup:
       var nvm = EvmcVM.init(vm, hc)
 
     test "isABICompatible":
       check nvm.isABICompatible() == true
+
+    test "vm.name":
+      check nvm.name() == "example_vm"
+
+    test "vm.version":
+      check nvm.version() == "0.0.0"
 
     test "getCapabilities":
       let cap = nvm.getCapabilities()
@@ -121,10 +133,33 @@ proc main() =
       check nvm.setOption("debug", "true") == EVMC_SET_OPTION_INVALID_NAME
 
     test "execute and destroy":
+      var bn = $tx_context.block_number
       var res = nvm.execute(EVMC_HOMESTEAD, msg, code)
+      check res.status_code == EVMC_SUCCESS
       check res.gas_left == 100000
+      check equalMem(bn[0].addr, res.output_data, bn.len)
       res.release(res)
+
+      var empty_key: evmc_bytes32
+      let val = hc.getStorage(address, empty_key)
+      check val.bytes[31] == tx_context.block_number.byte
+
       nvm.destroy()
-      example_host_destroy_context(ctx)
+      destroy_host_context(ctx)
+
+proc main() =
+  runTest("EVMC Nim to C API",
+    evmc_create_example_vm,
+    example_host_get_interface,
+    example_host_create_context,
+    example_host_destroy_context
+  )
+
+  runTest("EVMC Nim to Nim API",
+    nim_create_example_vm,
+    nim_host_get_interface,
+    nim_host_create_context,
+    nim_host_destroy_context
+  )
 
 main()
