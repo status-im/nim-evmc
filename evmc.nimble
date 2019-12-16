@@ -10,7 +10,7 @@ skipDirs      = @["tests"]
 requires "nim >= 0.19",
          "stew"
 
-proc test(name: string, lang: string = "c") =
+proc test(name: string, lang: string = "cpp") =
   if not dirExists "build":
     mkDir "build"
   --run
