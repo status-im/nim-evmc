@@ -3,7 +3,7 @@ import evmc_nim/nim_host
 import stew/byteutils
 
 {.compile: "evmc_c/example_host.cpp".}
-{.compile: "evmc_c/example_vm.c".}
+{.compile: "evmc_c/example_vm.cpp".}
 {.passL: "-lstdc++"}
 
 when defined(posix):
@@ -62,12 +62,6 @@ template runTest(testName: string, create_vm, get_host_interface, create_host_co
 
     test "getTxContext":
       let txc = hc.getTxContext()
-
-      debugEcho tx_context.block_number, " " , txc.block_number
-      debugEcho tx_context.block_timestamp, " " , txc.block_timestamp
-      debugEcho tx_context.block_gas_limit, " " , txc.block_gas_limit
-
-
       check tx_context.block_number == txc.block_number
       check tx_context.block_timestamp == txc.block_timestamp
       check tx_context.block_gas_limit == txc.block_gas_limit

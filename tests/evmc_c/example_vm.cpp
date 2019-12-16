@@ -17,7 +17,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-
+extern "C" {
+  
 /// The example VM instance struct extending the evmc_vm.
 struct example_vm
 {
@@ -225,8 +226,10 @@ struct evmc_vm* evmc_create_example_vm()
         .get_capabilities = get_capabilities,
         .set_option = set_option,
     };
-    struct example_vm* vm = calloc(1, sizeof(struct example_vm));
+    struct example_vm* vm = (example_vm*)calloc(1, sizeof(struct example_vm));
     struct evmc_vm* interface = &vm->instance;
     memcpy(interface, &init, sizeof(init));
     return interface;
+}
+
 }
