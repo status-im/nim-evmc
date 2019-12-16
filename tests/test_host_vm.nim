@@ -6,13 +6,16 @@ import stew/byteutils
 {.compile: "evmc_c/example_vm.c".}
 {.passL: "-lstdc++"}
 
+when defined(posix):
+  {.passC: "-std=c++11".}
+
 proc example_host_get_interface(): ptr evmc_host_interface {.importc, cdecl.}
-proc example_host_create_context(tx_context: evmc_tx_context): evmc_host_context {.importc, cdecl.}
+proc example_host_create_context(tx_context: var evmc_tx_context): evmc_host_context {.importc, cdecl.}
 proc example_host_destroy_context(context: evmc_host_context) {.importc, cdecl.}
 proc evmc_create_example_vm(): ptr evmc_vm {.importc, cdecl.}
 
 proc nim_host_get_interface(): ptr evmc_host_interface {.importc, cdecl.}
-proc nim_host_create_context(tx_context: evmc_tx_context): evmc_host_context {.importc, cdecl.}
+proc nim_host_create_context(tx_context: var evmc_tx_context): evmc_host_context {.importc, cdecl.}
 proc nim_host_destroy_context(context: evmc_host_context) {.importc, cdecl.}
 proc nim_create_example_vm(): ptr evmc_vm {.importc, cdecl.}
 
@@ -59,6 +62,12 @@ template runTest(testName: string, create_vm, get_host_interface, create_host_co
 
     test "getTxContext":
       let txc = hc.getTxContext()
+
+      debugEcho tx_context.block_number, " " , txc.block_number
+      debugEcho tx_context.block_timestamp, " " , txc.block_timestamp
+      debugEcho tx_context.block_gas_limit, " " , txc.block_gas_limit
+
+
       check tx_context.block_number == txc.block_number
       check tx_context.block_timestamp == txc.block_timestamp
       check tx_context.block_gas_limit == txc.block_gas_limit

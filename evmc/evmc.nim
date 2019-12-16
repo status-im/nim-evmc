@@ -254,7 +254,7 @@ type
   # @param context  The pointer to the Host execution context.
   # @param address  The address of the account the query is about.
   # @return         true if exists, false otherwise.
-  evmc_account_exists_fn* = proc(context: evmc_host_context, address: evmc_address): c99bool {.cdecl.}
+  evmc_account_exists_fn* = proc(context: evmc_host_context, address: ptr evmc_address): c99bool {.cdecl.}
 
   #  Get storage callback function.
   #
@@ -265,7 +265,7 @@ type
   #  @param key      The index of the account's storage entry.
   #  @return         The storage value at the given storage key or null bytes
   #                  if the account does not exist.
-  evmc_get_storage_fn* = proc(context: evmc_host_context, address: evmc_address, key: evmc_bytes32): evmc_bytes32 {.cdecl.}
+  evmc_get_storage_fn* = proc(context: evmc_host_context, address: ptr evmc_address, key: ptr evmc_bytes32): evmc_bytes32 {.cdecl.}
 
   # The effect of an attempt to modify a contract storage item.
   #
@@ -304,8 +304,8 @@ type
   # @param key      The index of the storage entry.
   # @param value    The value to be stored.
   # @return         The effect on the storage item.
-  evmc_set_storage_fn* = proc(context: evmc_host_context, address: evmc_address,
-                              key, value: evmc_bytes32): evmc_storage_status {.cdecl.}
+  evmc_set_storage_fn* = proc(context: evmc_host_context, address: ptr evmc_address,
+                              key, value: ptr evmc_bytes32): evmc_storage_status {.cdecl.}
 
   # Get balance callback function.
   #
@@ -314,7 +314,7 @@ type
   # @param context  The pointer to the Host execution context.
   # @param address  The address of the account.
   # @return         The balance of the given account or 0 if the account does not exist.
-  evmc_get_balance_fn* = proc(context: evmc_host_context, address: evmc_address): evmc_uint256be {.cdecl.}
+  evmc_get_balance_fn* = proc(context: evmc_host_context, address: ptr evmc_address): evmc_uint256be {.cdecl.}
 
   # Get code size callback function.
   #
@@ -324,7 +324,7 @@ type
   # @param context  The pointer to the Host execution context.
   # @param address  The address of the account.
   # @return         The size of the code in the account or 0 if the account does not exist.
-  evmc_get_code_size_fn* = proc(context: evmc_host_context, address: evmc_address): uint {.cdecl.}
+  evmc_get_code_size_fn* = proc(context: evmc_host_context, address: ptr evmc_address): uint {.cdecl.}
 
   # Get code hash callback function.
   #
@@ -335,7 +335,7 @@ type
   # @param context  The pointer to the Host execution context.
   # @param address  The address of the account.
   # @return         The hash of the code in the account or null bytes if the account does not exist.
-  evmc_get_code_hash_fn* = proc(context: evmc_host_context, address: evmc_address): evmc_bytes32 {.cdecl.}
+  evmc_get_code_hash_fn* = proc(context: evmc_host_context, address: ptr evmc_address): evmc_bytes32 {.cdecl.}
 
   # Copy code callback function.
   #
@@ -352,7 +352,7 @@ type
   #                     to store a copy of the requested code.
   # @param buffer_size  The size of the memory buffer.
   # @return             The number of bytes copied to the buffer by the Client.
-  evmc_copy_code_fn* = proc(context: evmc_host_context, address: evmc_address,
+  evmc_copy_code_fn* = proc(context: evmc_host_context, address: ptr evmc_address,
                             code_offset: uint, buffer_data: ptr byte,
                             buffer_size: uint): uint {.cdecl.}
 
@@ -364,7 +364,7 @@ type
   # @param context      The pointer to the Host execution context. See ::evmc_host_context.
   # @param address      The address of the contract to be selfdestructed.
   # @param beneficiary  The address where the remaining ETH is going to be transferred.
-  evmc_selfdestruct_fn* = proc(context: evmc_host_context, address, beneficiary: evmc_address) {.cdecl.}
+  evmc_selfdestruct_fn* = proc(context: evmc_host_context, address, beneficiary: ptr evmc_address) {.cdecl.}
 
   # Log callback function.
   #
@@ -377,7 +377,7 @@ type
   # @param data_size     The length of the data.
   # @param topics        The pointer to the array of topics attached to the log.
   # @param topics_count  The number of the topics. Valid values are between 0 and 4 inclusively.
-  evmc_emit_log_fn* = proc(context: evmc_host_context, address: evmc_address,
+  evmc_emit_log_fn* = proc(context: evmc_host_context, address: ptr evmc_address,
                            data: ptr byte, data_size: uint,
                            topics: ptr evmc_bytes32, topics_count: uint) {.cdecl.}
 
@@ -386,7 +386,7 @@ type
   # @param context  The pointer to the Host execution context.
   # @param msg      The call parameters.
   # @return         The result of the call.
-  evmc_call_fn* = proc(context: evmc_host_context, msg: evmc_message): evmc_result {.cdecl.}
+  evmc_call_fn* = proc(context: evmc_host_context, msg: ptr evmc_message): evmc_result {.cdecl.}
 
   # The Host interface.
   #

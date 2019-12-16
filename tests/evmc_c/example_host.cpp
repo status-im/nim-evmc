@@ -166,7 +166,7 @@ const evmc_host_interface* example_host_get_interface()
     return &evmc::Host::get_interface();
 }
 
-evmc_host_context* example_host_create_context(evmc_tx_context tx_context)
+evmc_host_context* example_host_create_context(evmc_tx_context &tx_context)
 {
     evmc::accounts accounts;
     evmc::account acc;
