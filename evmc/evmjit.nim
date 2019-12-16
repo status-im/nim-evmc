@@ -12,7 +12,7 @@ else:
 import evmc
 export evmc
 
-proc evmjit_create*(): ptr evmc_instance {.cdecl, importc: "evmjit_create", dynlib: libevmjit.}
+proc evmjit_create*(): ptr evmc_vm {.cdecl, importc: "evmjit_create", dynlib: libevmjit.}
   ## Create EVMJIT instance.
   ##
   ## @return  The EVMJIT instance.
