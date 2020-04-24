@@ -7,7 +7,7 @@ description   = "A wrapper for the The Ethereum EVMC library"
 license       = "Apache License 2.0"
 skipDirs      = @["tests"]
 
-requires "nim >= 0.19",
+requires "nim >= 1.2.0",
          "stew"
 
 proc test(name: string, lang: string = "cpp") =
