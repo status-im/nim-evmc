@@ -115,6 +115,8 @@ proc evmcExecuteImpl(vm: ptr evmc_vm, host: ptr evmc_host_interface,
                           msg: evmc_message, code: ptr byte, code_size: uint): evmc_result {.cdecl.} =
 
   var the_code = "\x43\x60\x00\x55\x43\x60\x00\x52\x59\x60\x00\xf3"
+  const the_gas_used = 9 # Count the instructions, same as the C++ fake EVM.
+
   if (code_size.int == the_code.len) and equalMem(code, the_code[0].addr, code_size):
     let tx_context = ctx.tx_context
     let output_size = 20
@@ -124,9 +126,10 @@ proc evmcExecuteImpl(vm: ptr evmc_vm, host: ptr evmc_host_interface,
     discard ctx.evmcSetStorageImpl(dest, key, value)
     var output_data = alloc(output_size)
     var bn = $tx_context.block_number
+    zeroMem(output_data, output_size)
     copyMem(output_data, bn[0].addr, bn.len)
     result.status_code = EVMC_SUCCESS
-    result.gas_left = msg.gas div 2
+    result.gas_left = msg.gas - the_gas_used
     result.output_data = cast[ptr byte](output_data)
     result.output_size = output_size.uint
     result.release = evmcReleaseResultImpl

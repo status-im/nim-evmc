@@ -167,18 +167,39 @@ template runTest(testName: string, create_vm, get_host_interface, create_host_co
     test "getCapabilities":
       let cap = nvm.getCapabilities()
       check EVMC_CAPABILITY_EVM1 in cap
-      check EVMC_CAPABILITY_EWASM in cap
+      check create_vm == evmc_create_example_vm or create_vm == nim_create_example_vm
+      if create_vm == evmc_create_example_vm:
+        # The C++ fake VM doesn't claim to support EWASM and we won't change that.
+        check EVMC_CAPABILITY_EWASM notin cap
+      else:
+        # But set EWASM bit in the Nim fake VM, just to verify more bits get through.
+        check EVMC_CAPABILITY_EWASM in cap
 
     test "setOption":
       check nvm.setOption("verbose", "2") == EVMC_SET_OPTION_SUCCESS
       check nvm.setOption("debug", "true") == EVMC_SET_OPTION_INVALID_NAME
 
     test "execute and destroy":
-      var bn = $tx_context.block_number
       var res = nvm.execute(EVMC_HOMESTEAD, msg, code)
       check res.status_code == EVMC_SUCCESS
-      check res.gas_left == 100000
-      check equalMem(bn[0].addr, res.output_data, bn.len)
+      check res.gas_left == 199991
+
+      check create_vm == evmc_create_example_vm or create_vm == nim_create_example_vm
+      if create_vm == evmc_create_example_vm:
+        # The C++ fake VM runs the code, with this as its results.
+        check res.output_size == 32
+        for i in 0..<res.output_size:
+          let b = cast[ptr UncheckedArray[byte]](res.output_data)[i]
+          let match = if i < 31: 0x00.byte else: tx_context.block_number.byte
+          check b == match
+      else:
+        # The Nim fake VM is not an interpreter, and just outputs this.
+        check res.output_size == 20
+        var bn = $tx_context.block_number
+        check equalMem(bn[0].addr, res.output_data, bn.len)
+        for i in bn.len..<res.output_size.int:
+          let b = cast[ptr UncheckedArray[byte]](res.output_data)[i]
+          check b == 0.byte
       res.release(res)
 
       var empty_key: evmc_bytes32
