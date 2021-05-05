@@ -13,7 +13,7 @@
 # The EVMC ABI version always equals the major version number of the EVMC project.
 # The Host SHOULD check if the ABI versions match when dynamically loading VMs.
 const
-  EVMC_ABI_VERSION* = 7.cint
+  EVMC_ABI_VERSION* = 8.cint
 
 # EVMC adopts the C99 standard, and one of its interfaces uses C99 `bool`.
 #
@@ -473,6 +473,39 @@ type
                            data: ptr byte, data_size: csize_t,
                            topics: ptr evmc_bytes32, topics_count: csize_t) {.cdecl.}
 
+  # Access status per EIP-2929: Gas cost increases for state access opcodes.
+  evmc_access_status* {.size: sizeof(cenum_small_range).} = enum
+    # The entry hasn't been accessed before – it's the first access.
+    EVMC_ACCESS_COLD = 0
+
+    # The entry is already in accessed_addresses or accessed_storage_keys.
+    EVMC_ACCESS_WARM = 1
+
+  # Access account callback function.
+  #
+  # This callback function is used by a VM to add the given address
+  # to accessed_addresses substate (EIP-2929).
+  #
+  # @param context  The Host execution context.
+  # @param address  The address of the account.
+  # @return         EVMC_ACCESS_WARM if accessed_addresses already contained the address
+  #                 or EVMC_ACCESS_COLD otherwise.
+  evmc_access_account_fn* = proc(context: evmc_host_context,
+                                 address: var evmc_address): evmc_access_status {.cdecl.}
+
+  # Access storage callback function.
+  #
+  # This callback function is used by a VM to add the given account storage entry
+  # to accessed_storage_keys substate (EIP-2929).
+  #
+  # @param context  The Host execution context.
+  # @param address  The address of the account.
+  # @param key      The index of the account's storage entry.
+  # @return         EVMC_ACCESS_WARM if accessed_storage_keys already contained the key
+  #                 or EVMC_ACCESS_COLD otherwise.
+  evmc_access_storage_fn* = proc(context: evmc_host_context, address: var evmc_address,
+                                 key: var evmc_bytes32): evmc_access_status {.cdecl.}
+
   # Pointer to the callback function supporting EVM calls.
   #
   # @param context  The pointer to the Host execution context.
@@ -522,6 +555,12 @@ type
 
     # Emit log callback function.
     emit_log*: evmc_emit_log_fn
+
+    # Access account callback function.
+    access_account*: evmc_access_account_fn
+
+    # Access storage callback function.
+    access_storage*: evmc_access_storage_fn
 
   # Destroys the VM instance.
   #

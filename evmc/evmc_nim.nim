@@ -67,6 +67,12 @@ proc selfdestruct*(ctx: HostContext, address, beneficiary: var evmc_address) =
 proc emitLog*(ctx: HostContext, address: var evmc_address, data: openArray[byte], topics: openArray[evmc_bytes32]) =
   ctx.host.emit_log(ctx.context, address, data[0].unsafeAddr, data.len.csize_t, topics[0].unsafeAddr, topics.len.csize_t)
 
+proc accessAccount*(ctx: HostContext, address: var evmc_address): evmc_access_status =
+  ctx.host.access_account(ctx.context, address)
+
+proc accessStorage*(ctx: HostContext, address: var evmc_address, key: var evmc_bytes32): evmc_access_status =
+  ctx.host.access_storage(ctx.context, address, key)
+
 proc call*(ctx: HostContext, msg: var evmc_message): evmc_result =
   ctx.host.call(ctx.context, msg)
 
