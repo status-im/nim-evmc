@@ -11,7 +11,7 @@ extern "C" {
 
 const struct evmc_host_interface* example_host_get_interface();
 
-struct evmc_host_context* example_host_create_context(struct evmc_tx_context tx_context);
+struct evmc_host_context* example_host_create_context(struct evmc_tx_context& tx_context);
 
 void example_host_destroy_context(struct evmc_host_context* context);
 

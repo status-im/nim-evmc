@@ -9,6 +9,44 @@ import stew/byteutils
 when defined(posix):
   {.passC: "-std=c++14".}
 
+# The original EVMC C/C++ `example_host_create_context` test code wants struct
+# `evmc_tx_context` passed by value, and `(tx_context: evmc_tx_context)` looks
+# like it would do that.
+#
+# But Nim doesn't care if the type says `var` or not.  It always passes these by
+# reference.  The symptoms of this mismatch look like corrupt test values, and it
+# took a while to debug the real cause.
+#
+# Commit e2b88bb ["fixes 32 bit failure"]
+# (https://github.com/status-im/nim-evmc/commit/e2b88bb) means this was known and
+# thought to be a problem on 32-bit targets.  But it occurs on 64-bit x86 now too.
+#
+# When the argument is written as `(tx_context: var evmc_tx_context)`, Nim generates:
+#     extern "C" N_CDECL(void*, example_host_create_context)(tyObject_evmc_tx_context__OA15HY3LMy1L3gcog23g9aw& tx_context);
+# Called as:
+#     void* T6_ = example_host_create_context(tx_contextX60gensym17426327_);
+#
+# But when the argument is written as `(tx_context: evmc_tx_context)`, Nim generates:
+#     extern "C" N_CDECL(void*, example_host_create_context)(tyObject_evmc_tx_context__OA15HY3LMy1L3gcog23g9aw* tx_context);
+# Called as:
+#     void* T6_ = example_host_create_context((&tx_contextX60gensym17426326_));
+#
+# Either way, Nim ends up passing a pointer.  Is there a way to tell Nim to pass
+# the correct value to a C function expecting a structure?  Yes, `{.bycopy.}`.
+#
+# Adding `...object {.bycopy.}` where `evmc_tx_context` is defined:
+#     extern "C" N_CDECL(void*, example_host_create_context)(tyObject_evmc_tx_context__OA15HY3LMy1L3gcog23g9aw tx_context);
+# Called as:
+#     void* T6_ = example_host_create_context(tx_contextX60gensym17426330_);
+#
+# But there doesn't seem to be a way to add the pragma in the `proc` signature
+# or a type alias, unfortunately.  It must be on the original type.  Putting it
+# on the original type affects every use of the type, not just these calls, and
+# we generally don't want to affect copying in other situations with a public
+# API type, so adding `{.bycopy.}` is not great.
+#
+# So we use `var` to be certain of a reference, and modify the C/C++ to expect one.
+
 proc example_host_get_interface(): ptr evmc_host_interface {.importc, cdecl.}
 proc example_host_create_context(tx_context: var evmc_tx_context): evmc_host_context {.importc, cdecl.}
 proc example_host_destroy_context(context: evmc_host_context) {.importc, cdecl.}
