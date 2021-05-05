@@ -686,6 +686,22 @@ type
     #  If the VM does not support this feature the pointer can be NULL.
     set_option*: evmc_set_option_fn
 
+  # Example of a function creating an instance of an example EVM implementation.
+  #
+  # Each EVM implementation MUST provide a function returning an EVM instance.
+  # The function SHOULD be named evmc_create_<vm-name>(void). If the VM name
+  # contains hyphens replaces them with underscores in the function names.
+  #
+  # Binaries naming convention
+  #
+  # For VMs distributed as shared libraries, the name of the library SHOULD
+  # match the VM name. The convetional library filename prefixes and extensions
+  # SHOULD be ignored by the Client. For example, the shared library with the
+  # "beta-interpreter" implementation may be named libbeta-interpreter.so.
+  #
+  # @return  The VM instance or NULL indicating instance creation failure.
+  evmc_create_vm_name_fn = proc(): ptr evmc_vm {.cdecl.}
+
 const
   # The maximum EVM revision supported.
   EVMC_MAX_REVISION* = EVMC_BERLIN
