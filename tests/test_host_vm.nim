@@ -7,7 +7,7 @@ import stew/byteutils
 {.passL: "-lstdc++"}
 
 when defined(posix):
-  {.passC: "-std=c++11".}
+  {.passC: "-std=c++14".}
 
 proc example_host_get_interface(): ptr evmc_host_interface {.importc, cdecl.}
 proc example_host_create_context(tx_context: var evmc_tx_context): evmc_host_context {.importc, cdecl.}
