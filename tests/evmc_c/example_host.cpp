@@ -5,6 +5,9 @@
 
 /// @file
 /// Example implementation of an EVMC Host.
+
+#include "example_host.h"
+
 #include "evmc.hpp"
 
 #include <algorithm>
@@ -17,6 +20,8 @@ namespace evmc
 {
 struct account
 {
+    virtual ~account() = default;
+
     evmc::uint256be balance = {};
     std::vector<uint8_t> code;
     std::map<evmc::bytes32, evmc::bytes32> storage;
@@ -45,9 +50,10 @@ class ExampleHost : public evmc::Host
 
 public:
     ExampleHost() = default;
-    explicit ExampleHost(evmc_tx_context& _tx_context) noexcept : tx_context{_tx_context} {};
+    explicit ExampleHost(evmc_tx_context& _tx_context) noexcept : tx_context{_tx_context} {}
     ExampleHost(evmc_tx_context& _tx_context, evmc::accounts& _accounts) noexcept
-      : accounts{_accounts}, tx_context{_tx_context} {};
+      : accounts{_accounts}, tx_context{_tx_context}
+    {}
 
     bool account_exists(const evmc::address& addr) const noexcept final
     {
@@ -159,6 +165,7 @@ public:
     }
 };
 
+
 extern "C" {
 
 const evmc_host_interface* example_host_get_interface()
@@ -166,16 +173,21 @@ const evmc_host_interface* example_host_get_interface()
     return &evmc::Host::get_interface();
 }
 
-evmc_host_context* example_host_create_context(evmc_tx_context &tx_context)
+evmc_host_context* example_host_create_context(evmc_tx_context tx_context)
 {
+#if 0
+    auto host = new ExampleHost{tx_context};
+#else
+    // Added for `nim-evmc/tests/evmc_c`:
     evmc::accounts accounts;
     evmc::account acc;
     evmc_address addr = {{0, 1, 2}};
     acc.balance = {{1, 0}};
     acc.code = {10, 11, 12, 13, 14, 15};
     accounts[addr] = acc;
-
     auto host = new ExampleHost{tx_context, accounts};
+#endif
+
     return host->to_context();
 }
 
