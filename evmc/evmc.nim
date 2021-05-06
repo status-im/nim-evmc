@@ -15,17 +15,27 @@
 const
   EVMC_ABI_VERSION* = 7.cint
 
-type
-  # SPECIAL NOTE
-  # EVMC adopt C99 standard, and one of it's interface using
-  # C99 'bool' as return type. Nowhere in the C documentation
-  # mentions about it's size.
-  # chfast@ethereum/evmc told me about this "https://godbolt.org/z/marD9R"
-  # lucky for us, in practice C compilers agree to use one byte long for C99 bool.
-  # Nim sizeof(bool) also == 1.
-  # but still we need to be careful about this though.
-  c99bool* = bool
+# EVMC adopts the C99 standard, and one of its interfaces uses C99 `bool`.
+#
+# Nim's `bool` uses C `bool` when compiler is in C99 mode (but some default
+# to C89) and Nim version is >= 1.4.6, or always on C++, but those conditions
+# aren't always met.  See https://github.com/nim-lang/Nim/pull/13798.
+#
+# Although `sizeof(bool)` is nearly always 1, not always.  Some targets use
+# `enum` or `int`, e.g. Apple/Darwin PPC, some 32-bit ARMs.  Anyway, it isn't
+# guaranteed to be returned from a function the same way as a integer.
+#
+# So do the right thing and use the C99 `<stdbool.h>` type.  Most targets
+# have this header even in C89 mode, and if they don't we can't guarantee
+# EVMC binary compatibility.  The `= bool` tells Nim it's semantically
+# compatible with the Nim `bool` type, and the `.importc` part says to use
+# C `bool` in the generated C code.
+when defined(cpp):
+  type c99bool* {.importc: "bool".} = bool
+else:
+  type c99bool* {.importc: "bool", header: "<stdbool.h>".} = bool
 
+type
   # The fixed size array of 32 bytes.
   # 32 bytes of data capable of storing e.g. 256-bit hashes.
   evmc_bytes32* = object
