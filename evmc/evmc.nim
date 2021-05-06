@@ -90,7 +90,7 @@ type
     # The size of the message input data.
     # If input_data is NULL this MUST be 0.
     # actually it's a size_t
-    input_size*: uint
+    input_size*: csize_t
 
     # The amount of Ether transferred with the message.
     value*: evmc_uint256be
@@ -218,7 +218,7 @@ type
     # The size of the output data.
     #
     # If output_data is NULL this MUST be 0.
-    output_size*: uint
+    output_size*: csize_t
 
     # The method releasing all resources associated with the result object.
     #
@@ -336,7 +336,7 @@ type
   # @param context  The pointer to the Host execution context.
   # @param address  The address of the account.
   # @return         The size of the code in the account or 0 if the account does not exist.
-  evmc_get_code_size_fn* = proc(context: evmc_host_context, address: ptr evmc_address): uint {.cdecl.}
+  evmc_get_code_size_fn* = proc(context: evmc_host_context, address: ptr evmc_address): csize_t {.cdecl.}
 
   # Get code hash callback function.
   #
@@ -365,8 +365,8 @@ type
   # @param buffer_size  The size of the memory buffer.
   # @return             The number of bytes copied to the buffer by the Client.
   evmc_copy_code_fn* = proc(context: evmc_host_context, address: ptr evmc_address,
-                            code_offset: uint, buffer_data: ptr byte,
-                            buffer_size: uint): uint {.cdecl.}
+                            code_offset: csize_t, buffer_data: ptr byte,
+                            buffer_size: csize_t): csize_t {.cdecl.}
 
   # Selfdestruct callback function.
   #
@@ -390,8 +390,8 @@ type
   # @param topics        The pointer to the array of topics attached to the log.
   # @param topics_count  The number of the topics. Valid values are between 0 and 4 inclusively.
   evmc_emit_log_fn* = proc(context: evmc_host_context, address: ptr evmc_address,
-                           data: ptr byte, data_size: uint,
-                           topics: ptr evmc_bytes32, topics_count: uint) {.cdecl.}
+                           data: ptr byte, data_size: csize_t,
+                           topics: ptr evmc_bytes32, topics_count: csize_t) {.cdecl.}
 
   # Pointer to the callback function supporting EVM calls.
   #
@@ -527,7 +527,7 @@ type
   # @return           The execution result.
   evmc_execute_fn* = proc(vm: ptr evmc_vm, host: ptr evmc_host_interface,
                           context: evmc_host_context, rev: evmc_revision,
-                          msg: evmc_message, code: ptr byte, code_size: uint): evmc_result {.cdecl.}
+                          msg: evmc_message, code: ptr byte, code_size: csize_t): evmc_result {.cdecl.}
 
   # Possible capabilities of a VM.
   evmc_capabilities* = distinct uint32
