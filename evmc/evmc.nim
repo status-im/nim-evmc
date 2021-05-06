@@ -42,7 +42,7 @@ type
   evmc_call_kind* {.size: sizeof(cint).} = enum
     EVMC_CALL = 0         # Request CALL.
     EVMC_DELEGATECALL = 1 # Request DELEGATECALL. Valid since Homestead.
-                          #  The value param ignored.
+                          # The value param ignored.
     EVMC_CALLCODE = 2     # Request CALLCODE.
     EVMC_CREATE = 3       # Request CREATE.
     EVMC_CREATE2 = 4      # Request CREATE2. Valid since Constantinople.
@@ -187,24 +187,26 @@ type
     # The execution status code.
     status_code*: evmc_status_code
 
-    #The amount of gas left after the execution.
-    # If evmc_result::code is not ::EVMC_SUCCESS nor ::EVMC_REVERT
+    # The amount of gas left after the execution.
+    #
+    # If evmc_result::code is neither ::EVMC_SUCCESS nor ::EVMC_REVERT
     # the value MUST be 0.
     gas_left*: int64
 
     # The reference to output data.
     #
-    #  The output contains data coming from RETURN opcode (iff evmc_result::code
-    #  field is ::EVMC_SUCCESS) or from REVERT opcode.
+    # The output contains data coming from RETURN opcode (iff evmc_result::code
+    # field is ::EVMC_SUCCESS) or from REVERT opcode.
     #
-    #  The memory containing the output data is owned by EVM and has to be
-    #  freed with evmc_result::release().
+    # The memory containing the output data is owned by EVM and has to be
+    # freed with evmc_result::release().
     #
-    #  This MAY be NULL.
+    # This MAY be NULL.
     output_data*: ptr byte
 
     # The size of the output data.
-    #  If output_data is NULL this MUST be 0.
+    #
+    # If output_data is NULL this MUST be 0.
     output_size*: uint
 
     # The method releasing all resources associated with the result object.
@@ -233,18 +235,17 @@ type
     # - and the result describes successful contract creation
     #   (evmc_result::status_code is ::EVMC_SUCCESS).
     # In all other cases the address MUST be null bytes.
-    #
     create_address*: evmc_address
 
     # Reserved data that MAY be used by a evmc_result object creator.
     #
-    #  This reserved 4 bytes together with 20 bytes from create_address form
-    #  24 bytes of memory called "optional data" within evmc_result struct
-    #  to be optionally used by the evmc_result object creator.
+    # This reserved 4 bytes together with 20 bytes from create_address form
+    # 24 bytes of memory called "optional data" within evmc_result struct
+    # to be optionally used by the evmc_result object creator.
     #
-    #  @see evmc_result_optional_data, evmc_get_optional_data().
+    # @see evmc_result_optional_data, evmc_get_optional_data().
     #
-    #  Also extends the size of the evmc_result to 64 bytes (full cache line).
+    # Also extends the size of the evmc_result to 64 bytes (full cache line).
     padding*: array[4, byte]
 
   # Check account existence callback function.
