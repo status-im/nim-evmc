@@ -178,13 +178,14 @@ template runTest(testName: string, create_vm, get_host_interface, create_host_co
     test "getCapabilities":
       let cap = nvm.getCapabilities()
       check EVMC_CAPABILITY_EVM1 in cap
+      check EVMC_CAPABILITY_EWASM notin cap
       check create_vm == evmc_create_example_vm or create_vm == nim_create_example_vm
       if create_vm == evmc_create_example_vm:
-        # The C++ fake VM doesn't claim to support EWASM and we won't change that.
-        check EVMC_CAPABILITY_EWASM notin cap
+        # The C++ fake VM doesn't claim to support PRECOMPILES and we won't change that.
+        check EVMC_CAPABILITY_PRECOMPILES notin cap
       else:
-        # But set EWASM bit in the Nim fake VM, just to verify more bits get through.
-        check EVMC_CAPABILITY_EWASM in cap
+        # But set PROCOMPILES bit in the Nim fake VM, just to verify more bits get through.
+        check EVMC_CAPABILITY_PRECOMPILES in cap
 
     test "setOption":
       check nvm.setOption("verbose", "2") == EVMC_SET_OPTION_SUCCESS
