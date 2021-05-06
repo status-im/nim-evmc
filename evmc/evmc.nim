@@ -162,6 +162,7 @@ type
     # EVMC_ARGUMENT_OUT_OF_RANGE
     # EVMC_WASM_UNREACHABLE_INSTRUCTION
     # EVMC_WASM_TRAP
+    # EVMC_INSUFFICIENT_BALANCE
     # EVMC_INTERNAL_ERROR
     # EVMC_REJECTED
     # EVMC_OUT_OF_MEMORY
@@ -663,6 +664,9 @@ const
   # A WebAssembly trap has been hit during execution. This can be for many
   # reasons, including division by zero, validation errors, etc.
   EVMC_WASM_TRAP* = 16.evmc_status_code
+
+  # The caller does not have enough funds for value transfer. */
+  EVMC_INSUFFICIENT_BALANCE = 17.evmc_status_code
 
   # EVM implementation generic internal error.
   EVMC_INTERNAL_ERROR* = evmc_status_code(-1)
