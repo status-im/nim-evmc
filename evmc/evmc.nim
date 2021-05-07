@@ -609,11 +609,26 @@ type
                           context: evmc_host_context, rev: evmc_revision,
                           msg: evmc_message, code: ptr byte, code_size: csize_t): evmc_result {.cdecl.}
 
-  # Possible capabilities of a VM.
-  evmc_capabilities* = distinct uint32
-    # EVMC_CAPABILITY_EVM1
-    # EVMC_CAPABILITY_EWASM
-    # EVMC_CAPABILITY_PRECOMPILES
+  # Possible capabilities of a VM. (Bit shift positions).
+  evmc_capability_bit_shifts* = enum
+    # The VM is capable of executing EVM1 bytecode.
+    EVMC_CAPABILITY_EVM1 = 0
+
+    # The VM is capable of executing ewasm bytecode.
+    EVMC_CAPABILITY_EWASM = 1
+
+    # The VM is capable of executing the precompiled contracts
+    # defined for the range of destination addresses.
+    #
+    # The EIP-1352 (https://eips.ethereum.org/EIPS/eip-1352) specifies
+    # the range 0x000...0000 - 0x000...ffff of addresses
+    # reserved for precompiled and system contracts.
+    #
+    # This capability is **experimental** and MAY be removed without notice.
+    EVMC_CAPABILITY_PRECOMPILES = 2
+
+  # Possible capabilities of a VM. (Nim bitset).
+  evmc_capabilities* {.size: sizeof(uint32).} = set[evmc_capability_bit_shifts]
 
   # Return the supported capabilities of the VM instance.
   #
@@ -674,15 +689,6 @@ type
 const
   # The maximum EVM revision supported.
   EVMC_MAX_REVISION* = EVMC_BERLIN
-
-proc incl*(a: var evmc_capabilities, b: evmc_capabilities) {.inline.} =
-  a = evmc_capabilities(a.uint32 or b.uint32)
-
-proc excl*(a: var evmc_capabilities, b: evmc_capabilities) {.inline.} =
-  a = evmc_capabilities(a.uint32 and (not b.uint32))
-
-proc contains*(a, b: evmc_capabilities): bool {.inline.} =
-  (a.uint32 and b.uint32) != 0
 
 # Check small-range enums have C `int` size, so the definitions in this file
 # are binary compatible with EVMC API in `evmc.h`.  On almost all targets it's

@@ -149,8 +149,7 @@ proc evmcExecuteImpl(vm: ptr evmc_vm, host: ptr evmc_host_interface,
   result.gas_left = 0
 
 proc evmcGetCapabilitiesImpl(vm: ptr evmc_vm): evmc_capabilities {.cdecl.} =
-  result.incl(EVMC_CAPABILITY_EVM1)
-  result.incl(EVMC_CAPABILITY_EWASM)
+  result = {EVMC_CAPABILITY_EVM1, EVMC_CAPABILITY_EWASM}
 
 proc evmcDestroyImpl(vm: ptr evmc_vm) {.cdecl.} =
   dealloc(vm)
