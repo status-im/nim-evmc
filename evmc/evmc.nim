@@ -43,8 +43,8 @@ else:
 # on 32-bit ARM Google Fuchsia, which we might realistically encounter, and
 # some embedded system CPUs.
 #
-# We'll assume C `int`.  If you run on those 32-bit ARMs and EVMC doesn't work,
-# this comment and type may prove useful.
+# We'll assume C `int`, but verify (see end of this file).  If you run on those
+# 32-bit ARMs and EVMC doesn't work, this comment and type may prove useful.
 type cenum_small_range = cint
 
 type
@@ -680,3 +680,12 @@ proc excl*(a: var evmc_capabilities, b: evmc_capabilities) {.inline.} =
 
 proc contains*(a, b: evmc_capabilities): bool {.inline.} =
   (a.uint32 and b.uint32) != 0
+
+# Check small-range enums have C `int` size, so the definitions in this file
+# are binary compatible with EVMC API in `evmc.h`.  On almost all targets it's
+# compatible.  This is to avoid lost time debugging on a target where it isn't.
+# The negative-size array trick is portable C equivalent to `static_assert`.
+{.emit: """enum small_range { SMALL_RANGE_MAX = 100 };
+typedef char enum_small_range_size_check[1-2*!(
+  sizeof(enum small_range) == """ & $sizeof(cenum_small_range) & """
+)];""".}
