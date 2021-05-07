@@ -9,8 +9,12 @@
 
 
 import ../evmc/[evmc, evmc_nim], unittest
-import evmc_nim/nim_host
 import stew/byteutils
+
+# This module must be imported to include it in the compile, but Nim thinks
+# it is unused because it's only called via `.exportc` -> `.importc`.
+{.warning[UnusedImport]: off.}:
+  import evmc_nim/nim_host
 
 {.compile: "evmc_c/example_host.cpp".}
 {.compile: "evmc_c/example_vm.cpp".}
