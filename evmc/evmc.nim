@@ -35,6 +35,18 @@ when defined(cpp):
 else:
   type c99bool* {.importc: "bool", header: "<stdbool.h>".} = bool
 
+# EVMC uses C `enum` types as parameters and in structures.
+#
+# Although these are nearly always the size of C `int`, a few targets default
+# to `char` (because all the enum values fit).  Just our luck, it's some 32-bit
+# ARM ABIs (AAPCS and BPAPI); but not Linux, FreeBSD or NetBSD.  It is `char`
+# on 32-bit ARM Google Fuchsia, which we might realistically encounter, and
+# some embedded system CPUs.
+#
+# We'll assume C `int`.  If you run on those 32-bit ARMs and EVMC doesn't work,
+# this comment and type may prove useful.
+type cenum_small_range = cint
+
 type
   # The fixed size array of 32 bytes.
   # 32 bytes of data capable of storing e.g. 256-bit hashes.
@@ -49,7 +61,7 @@ type
     bytes*: array[20, byte]
 
   # The kind of call-like instruction.
-  evmc_call_kind* {.size: sizeof(cint).} = enum
+  evmc_call_kind* {.size: sizeof(cenum_small_range).} = enum
     EVMC_CALL = 0         # Request CALL.
     EVMC_DELEGATECALL = 1 # Request DELEGATECALL. Valid since Homestead.
                           # The value param ignored.
@@ -154,7 +166,7 @@ type
   # @note
   # In case new status codes are needed, please create an issue or pull request
   # in the EVMC repository (https://github.com/ethereum/evmc).
-  evmc_status_code* {.size: sizeof(cint).} = enum
+  evmc_status_code* {.size: sizeof(cenum_small_range).} = enum
     # The VM failed to allocate the amount of memory needed for execution.
     EVMC_OUT_OF_MEMORY = -3
 
@@ -353,7 +365,7 @@ type
   # - Y != X, Y != 0 (Y is any value other than X and 0),
   # - Z != Y (Z is any value other than Y),
   # - the "->" means the change from one value to another.
-  evmc_storage_status* {.size: sizeof(cint).} = enum
+  evmc_storage_status* {.size: sizeof(cenum_small_range).} = enum
     # The value of a storage item has been left unchanged: 0 -> 0 and X -> X.
     EVMC_STORAGE_UNCHANGED = 0
 
@@ -514,7 +526,7 @@ type
   evmc_destroy_fn* = proc(vm: ptr evmc_vm) {.cdecl.}
 
   # Possible outcomes of evmc_set_option.
-  evmc_set_option_result* {.size: sizeof(cint).} = enum
+  evmc_set_option_result* {.size: sizeof(cenum_small_range).} = enum
     EVMC_SET_OPTION_SUCCESS = 0
     EVMC_SET_OPTION_INVALID_NAME = 1
     EVMC_SET_OPTION_INVALID_VALUE = 2
@@ -536,7 +548,7 @@ type
   #
   # The revision of the EVM specification based on the Ethereum
   # upgrade / hard fork codenames.
-  evmc_revision* {.size: sizeof(cint).} = enum
+  evmc_revision* {.size: sizeof(cenum_small_range).} = enum
     # The Frontier revision.
     # The one Ethereum launched with.
     EVMC_FRONTIER = 0
