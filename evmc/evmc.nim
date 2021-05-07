@@ -69,9 +69,12 @@ type
     EVMC_CREATE = 3       # Request CREATE.
     EVMC_CREATE2 = 4      # Request CREATE2. Valid since Constantinople.
 
-  # The flags for ::evmc_message.
-  evmc_flags* {.size: sizeof(cint).} = enum
-    EVMC_STATIC = 1  # Static call mode.
+  # The flags for ::evmc_message. (Bit shift positions).
+  evmc_flag_bit_shifts* = enum
+    EVMC_STATIC = 0       # Static call mode.
+
+  # The flags for ::evmc_message. (Nim bitset).
+  evmc_flags* {.size: sizeof(uint32).} = set[evmc_flag_bit_shifts]
 
   # The message describing an EVM call,
   # including a zero-depth calls from a transaction origin.
@@ -81,7 +84,7 @@ type
 
     # Additional flags modifying the call execution behavior.
     # In the current version the only valid values are ::EVMC_STATIC or 0.
-    flags*: uint32
+    flags*: evmc_flags
 
     # The call depth.
     depth*: int32

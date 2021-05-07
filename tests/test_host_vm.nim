@@ -87,6 +87,7 @@ template runTest(testName: string, create_vm, get_host_interface, create_host_co
 
   var msg = evmc_message(
     kind: EVMC_CALL,
+    flags: {EVMC_STATIC},
     sender: address,
     destination: address,
     value: balance,
