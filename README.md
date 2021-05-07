@@ -24,5 +24,11 @@ This package is licensed under either of
 - Apache License, version 2.0, ([LICENSE-APACHEv2](LICENSE-APACHEv2))
 - MIT license ([LICENSE-MIT](LICENSE-MIT))
 
-at your option. The files in this package may not be copied, modified, or
-distributed except according to those terms.
+at your option. The files in this package (except those mentioned below) may
+not be copied, modified, or distributed except according to those terms.
+
+Files under subdirectory `tests/evmc_c` are third-party files from [Ethereum
+Client-VM Connector API (EVMC)](https://github.com/ethereum/evmc), and may only
+be used, copied, modified or distributed according to the licensing terms of
+that distribution.  Those terms are the Apache License, version 2.0,
+([LICENSE-APACHEv2](LICENSE-APACHEv2)).
