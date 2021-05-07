@@ -19,12 +19,10 @@ with `add_library(evmjit SHARED ${SOURCES} gen/BuildInfo.gen.h)` in libevmjit/CM
 
 ## License
 
-Licensed and distributed under either of
+This package is licensed under either of
 
-* MIT license: [LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT
+- Apache License, version 2.0, ([LICENSE-APACHEv2](LICENSE-APACHEv2))
+- MIT license ([LICENSE-MIT](LICENSE-MIT))
 
-or
-
-* Apache License, Version 2.0, ([LICENSE-APACHEv2](LICENSE-APACHEv2) or http://www.apache.org/licenses/LICENSE-2.0)
-
-at your option. This file may not be copied, modified, or distributed except according to those terms.
+at your option. The files in this package may not be copied, modified, or
+distributed except according to those terms.
