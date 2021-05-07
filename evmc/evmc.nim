@@ -154,28 +154,93 @@ type
   # @note
   # In case new status codes are needed, please create an issue or pull request
   # in the EVMC repository (https://github.com/ethereum/evmc).
-  evmc_status_code* = distinct cint
-    # EVMC_SUCCESS
-    # EVMC_FAILURE
-    # EVMC_REVERT
-    # EVMC_OUT_OF_GAS
-    # EVMC_INVALID_INSTRUCTION
-    # EVMC_UNDEFINED_INSTRUCTION
-    # EVMC_STACK_OVERFLOW
-    # EVMC_STACK_UNDERFLOW
-    # EVMC_BAD_JUMP_DESTINATION
-    # EVMC_INVALID_MEMORY_ACCESS
-    # EVMC_CALL_DEPTH_EXCEEDED
-    # EVMC_STATIC_MODE_VIOLATION
-    # EVMC_PRECOMPILE_FAILURE
-    # EVMC_CONTRACT_VALIDATION_FAILURE
-    # EVMC_ARGUMENT_OUT_OF_RANGE
-    # EVMC_WASM_UNREACHABLE_INSTRUCTION
-    # EVMC_WASM_TRAP
-    # EVMC_INSUFFICIENT_BALANCE
-    # EVMC_INTERNAL_ERROR
-    # EVMC_REJECTED
-    # EVMC_OUT_OF_MEMORY
+  evmc_status_code* {.size: sizeof(cint).} = enum
+    # The VM failed to allocate the amount of memory needed for execution.
+    EVMC_OUT_OF_MEMORY = -3
+
+    # The execution of the given code and/or message has been rejected
+    # by the EVM implementation.
+    #
+    # This error SHOULD be used to signal that the EVM is not able to or
+    # willing to execute the given code type or message.
+    # If an EVM returns the ::EVMC_REJECTED status code,
+    # the Client MAY try to execute it in other EVM implementation.
+    # For example, the Client tries running a code in the EVM 1.5. If the
+    # code is not supported there, the execution falls back to the EVM 1.0.
+    EVMC_REJECTED = -2
+
+    # EVM implementation generic internal error.
+    EVMC_INTERNAL_ERROR = -1
+
+    # Execution finished with success.
+    EVMC_SUCCESS = 0
+
+    # Generic execution failure.
+    EVMC_FAILURE = 1
+
+    # Execution terminated with REVERT opcode.
+    #
+    # In this case the amount of gas left MAY be non-zero and additional output
+    # data MAY be provided in ::evmc_result.
+    EVMC_REVERT = 2
+
+    # The execution has run out of gas.
+    EVMC_OUT_OF_GAS = 3
+
+    # The designated INVALID instruction has been hit during execution.
+    #
+    # The EIP-141 (https://github.com/ethereum/EIPs/blob/master/EIPS/eip-141.md)
+    # defines the instruction 0xfe as INVALID instruction to indicate execution
+    # abortion coming from high-level languages. This status code is reported
+    # in case this INVALID instruction has been encountered.
+    EVMC_INVALID_INSTRUCTION = 4
+
+    # An undefined instruction has been encountered.
+    EVMC_UNDEFINED_INSTRUCTION = 5
+
+    # The execution has attempted to put more items on the EVM stack
+    # than the specified limit.
+    EVMC_STACK_OVERFLOW = 6
+
+    # Execution of an opcode has required more items on the EVM stack.
+    EVMC_STACK_UNDERFLOW = 7
+
+    # Execution has violated the jump destination restrictions.
+    EVMC_BAD_JUMP_DESTINATION = 8
+
+    # Tried to read outside memory bounds.
+    #
+    # An example is RETURNDATACOPY reading past the available buffer.
+    EVMC_INVALID_MEMORY_ACCESS = 9
+
+    # Call depth has exceeded the limit (if any)
+    EVMC_CALL_DEPTH_EXCEEDED = 10
+
+    # Tried to execute an operation which is restricted in static mode.
+    EVMC_STATIC_MODE_VIOLATION = 11
+
+    # A call to a precompiled or system contract has ended with a failure.
+    #
+    # An example: elliptic curve functions handed invalid EC points.
+    EVMC_PRECOMPILE_FAILURE = 12
+
+    # Contract validation has failed (e.g. due to EVM 1.5 jump validity,
+    # Casper's purity checker or ewasm contract rules).
+    EVMC_CONTRACT_VALIDATION_FAILURE = 13
+
+    # An argument to a state accessing method has a value outside of the
+    # accepted range of values.
+    EVMC_ARGUMENT_OUT_OF_RANGE = 14
+
+    # A WebAssembly `unreachable` instruction has been hit during execution.
+    EVMC_WASM_UNREACHABLE_INSTRUCTION = 15
+
+    # A WebAssembly trap has been hit during execution. This can be for many
+    # reasons, including division by zero, validation errors, etc.
+    EVMC_WASM_TRAP = 16
+
+    # The caller does not have enough funds for value transfer. */
+    EVMC_INSUFFICIENT_BALANCE = 17
 
   # Releases resources assigned to an execution result.
   #
@@ -592,109 +657,6 @@ type
     set_option*: evmc_set_option_fn
 
 const
-  # The VM is capable of executing EVM1 bytecode.
-  EVMC_CAPABILITY_EVM1* = 1.evmc_capabilities
-
-  # The VM is capable of executing ewasm bytecode.
-  EVMC_CAPABILITY_EWASM* = 2.evmc_capabilities
-
-  # The VM is capable of executing the precompiled contracts
-  # defined for the range of destination addresses.
-  #
-  # The EIP-1352 (https://eips.ethereum.org/EIPS/eip-1352) specifies
-  # the range 0x000...0000 - 0x000...ffff of addresses
-  # reserved for precompiled and system contracts.
-  #
-  # This capability is **experimental** and MAY be removed without notice.
-  EVMC_CAPABILITY_PRECOMPILES* = 4.evmc_capabilities
-
-  # Execution finished with success.
-  EVMC_SUCCESS* = 0.evmc_status_code
-
-  # Generic execution failure.
-  EVMC_FAILURE* = 1.evmc_status_code
-
-  # Execution terminated with REVERT opcode.
-  #
-  # In this case the amount of gas left MAY be non-zero and additional output
-  # data MAY be provided in ::evmc_result.
-  EVMC_REVERT* = 2.evmc_status_code
-
-  # The execution has run out of gas.
-  EVMC_OUT_OF_GAS* = 3.evmc_status_code
-
-  # The designated INVALID instruction has been hit during execution.
-  #
-  # The EIP-141 (https://github.com/ethereum/EIPs/blob/master/EIPS/eip-141.md)
-  # defines the instruction 0xfe as INVALID instruction to indicate execution
-  # abortion coming from high-level languages. This status code is reported
-  # in case this INVALID instruction has been encountered.
-  EVMC_INVALID_INSTRUCTION* = 4.evmc_status_code
-
-  # An undefined instruction has been encountered.
-  EVMC_UNDEFINED_INSTRUCTION* = 5.evmc_status_code
-
-  # The execution has attempted to put more items on the EVM stack
-  # than the specified limit.
-  EVMC_STACK_OVERFLOW* = 6.evmc_status_code
-
-  # Execution of an opcode has required more items on the EVM stack.
-  EVMC_STACK_UNDERFLOW* = 7.evmc_status_code
-
-  # Execution has violated the jump destination restrictions.
-  EVMC_BAD_JUMP_DESTINATION* = 8.evmc_status_code
-
-  # Tried to read outside memory bounds.
-  #
-  # An example is RETURNDATACOPY reading past the available buffer.
-  EVMC_INVALID_MEMORY_ACCESS* = 9.evmc_status_code
-
-  # Call depth has exceeded the limit (if any)
-  EVMC_CALL_DEPTH_EXCEEDED* = 10.evmc_status_code
-
-  # Tried to execute an operation which is restricted in static mode.
-  EVMC_STATIC_MODE_VIOLATION* = 11.evmc_status_code
-
-  # A call to a precompiled or system contract has ended with a failure.
-  #
-  # An example: elliptic curve functions handed invalid EC points.
-  EVMC_PRECOMPILE_FAILURE* = 12.evmc_status_code
-
-  # Contract validation has failed (e.g. due to EVM 1.5 jump validity,
-  # Casper's purity checker or ewasm contract rules).
-  EVMC_CONTRACT_VALIDATION_FAILURE* = 13.evmc_status_code
-
-  # An argument to a state accessing method has a value outside of the
-  # accepted range of values.
-  EVMC_ARGUMENT_OUT_OF_RANGE* = 14.evmc_status_code
-
-  # A WebAssembly `unreachable` instruction has been hit during execution.
-  EVMC_WASM_UNREACHABLE_INSTRUCTION* = 15.evmc_status_code
-
-  # A WebAssembly trap has been hit during execution. This can be for many
-  # reasons, including division by zero, validation errors, etc.
-  EVMC_WASM_TRAP* = 16.evmc_status_code
-
-  # The caller does not have enough funds for value transfer. */
-  EVMC_INSUFFICIENT_BALANCE = 17.evmc_status_code
-
-  # EVM implementation generic internal error.
-  EVMC_INTERNAL_ERROR* = evmc_status_code(-1)
-
-  # The execution of the given code and/or message has been rejected
-  # by the EVM implementation.
-  #
-  # This error SHOULD be used to signal that the EVM is not able to or
-  # willing to execute the given code type or message.
-  # If an EVM returns the ::EVMC_REJECTED status code,
-  # the Client MAY try to execute it in other EVM implementation.
-  # For example, the Client tries running a code in the EVM 1.5. If the
-  # code is not supported there, the execution falls back to the EVM 1.0.
-  EVMC_REJECTED* = evmc_status_code(-2)
-
-  # The VM failed to allocate the amount of memory needed for execution.
-  EVMC_OUT_OF_MEMORY* = evmc_status_code(-3)
-
   # The maximum EVM revision supported.
   EVMC_MAX_REVISION* = EVMC_BERLIN
 
@@ -706,5 +668,3 @@ proc excl*(a: var evmc_capabilities, b: evmc_capabilities) {.inline.} =
 
 proc contains*(a, b: evmc_capabilities): bool {.inline.} =
   (a.uint32 and b.uint32) != 0
-
-proc `==`*(a, b: evmc_status_code): bool {.borrow.}
