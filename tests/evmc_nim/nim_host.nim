@@ -22,10 +22,10 @@ type
     tx_context: evmc_tx_context
     accounts: Table[evmc_address, Account]
 
-proc hash*(x: evmc_bytes32): Hash =
+proc hash(x: evmc_bytes32): Hash =
   result = hash(x.bytes)
 
-proc hash*(x: evmc_address): Hash =
+proc hash(x: evmc_address): Hash =
   result = hash(x.bytes)
 
 proc codeHash(acc: Account): evmc_bytes32 =
