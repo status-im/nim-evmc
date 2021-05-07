@@ -698,3 +698,18 @@ const
 typedef char enum_small_range_size_check[1-2*!(
   sizeof(enum small_range) == """ & $sizeof(cenum_small_range) & """
 )];""".}
+
+# Provide `$` to workaround Nim bug with `uint32`-sized bitset and default `$`:
+#
+#   Undefined symbols for architecture x86_64:
+#     "dollar___QwZMdq3JxuE8Rzg1sj1eCA(unsigned int)", referenced from:
+#         main__ixGWZtZ2B0S7ftxfYJLaUw() in @mtest_host_vm.nim.cpp.o
+#   ld: symbol(s) not found for architecture x86_64
+#   clang: error: linker command failed with exit code 1 (use -v to see invocation)
+#
+proc `$`*(a: evmc_flags | evmc_capabilities): string =
+  var firstElement = true
+  for value in items(a):
+    result.add(if result.len == 0: "{" else: ", ")
+    result.addQuoted(value)
+  result.add(if result.len == 0: "{}" else: "}")
