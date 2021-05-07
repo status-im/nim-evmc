@@ -707,9 +707,18 @@ typedef char enum_small_range_size_check[1-2*!(
 #   ld: symbol(s) not found for architecture x86_64
 #   clang: error: linker command failed with exit code 1 (use -v to see invocation)
 #
-proc `$`*(a: evmc_flags | evmc_capabilities): string =
+proc toString(a: evmc_flags | evmc_capabilities): string =
   var firstElement = true
   for value in items(a):
     result.add(if result.len == 0: "{" else: ", ")
     result.addQuoted(value)
   result.add(if result.len == 0: "{}" else: "}")
+
+# Workaround Nim <= 1.2.x giving "ambiguous call" if the above overloads `$` directly:
+#
+#   Error: ambiguous call; both dollars.$(x: set[T]) [declared in .../Nim/lib/system/dollars.nim(124, 6)]
+#          and evmc.$(a: evmc_flags or evmc_capabilities) [declared in .../evmc.nim(813, 6)]
+#          match for: (evmc_flags)
+#
+proc `$`*(a: evmc_flags): string = a.toString()
+proc `$`*(a: evmc_capabilities): string = a.toString()
