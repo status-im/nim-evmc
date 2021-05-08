@@ -41,6 +41,20 @@ developers of Ethereum clients and Ethereum Virtual Machines, but you can learn
 interesting things about how the EVM fits into the Ethereum system from what
 kinds of calls are in this API.
 
+## Current status
+
+__2021-05-06__
+- Supports EVMC API version 7.5.0.  This API is suitable for transactions up to
+and including Ethereum *Istanbul*.  That's everything up to 15<sup>th</sup>
+April 2021 on mainnet.  It recognises the later Ethereum *Berlin* but does not
+have all the functions necessary to run *Berlin*.
+
+__2019-12-16__
+- Supports EVMC API version 7.1.0.
+
+__2018-02-02__
+- Initial version for EVMJIT.  EVMC API doesn't have a version yet.
+
 ## Used by
 
 Nim&nbsp;EVMC is a core component of
