@@ -158,6 +158,19 @@ template runTest(testName: string, create_vm, get_host_interface, create_host_co
     test "emitlog":
       hc.emitLog(address, code, [ahash])
 
+    test "accessAccount":
+      let state = hc.accessAccount(address)
+      check state == EVMC_ACCESS_COLD
+
+    test "accessStorage":
+      let state = hc.accessStorage(address, key)
+      if create_vm == evmc_create_example_vm:
+        # The C++ fake VM returns COLD (0) and we won't change that.
+        check state == EVMC_ACCESS_COLD
+      else:
+        # The Nim fake VM returns WARM (1) just to verify a non-trivial value gets through.
+        check state == EVMC_ACCESS_WARM
+
     test "call":
       let res = hc.call(msg)
       check res.status_code == EVMC_REVERT

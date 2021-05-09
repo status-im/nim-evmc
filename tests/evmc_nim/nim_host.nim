@@ -103,6 +103,14 @@ proc evmcEmitLogImpl(ctx: HostContext, address: var evmc_address,
                            topics: ptr evmc_bytes32, topics_count: csize_t) {.cdecl.} =
   discard
 
+proc evmcAccessAccountImpl(ctx: HostContext,
+                           address: var evmc_address): evmc_access_status {.cdecl.} =
+  return EVMC_ACCESS_COLD
+
+proc evmcAccessStorageImpl(ctx: HostContext, address: var evmc_address,
+                           key: var evmc_bytes32): evmc_access_status {.cdecl.} =
+  return EVMC_ACCESS_WARM
+
 proc evmcCallImpl(ctx: HostContext, msg: var evmc_message): evmc_result {.cdecl.} =
   result = evmc_result(status_code: EVMC_REVERT, gas_left: msg.gas, output_data: msg.input_data, output_size: msg.input_size)
 
@@ -171,6 +179,8 @@ proc init_host_interface(): evmc_host_interface =
   result.get_tx_context = CAST[evmc_get_tx_context_fn](evmcGetTxContextImpl)
   result.get_block_hash = CAST[evmc_get_block_hash_fn](evmcGetBlockHashImpl)
   result.emit_log = CAST[evmc_emit_log_fn](evmcEmitLogImpl)
+  result.access_account = CAST[evmc_access_account_fn](evmcAccessAccountImpl)
+  result.access_storage = CAST[evmc_access_storage_fn](evmcAccessStorageImpl)
 
 const
   EVMC_HOST_NAME = "example_vm"
