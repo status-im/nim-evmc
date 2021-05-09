@@ -216,7 +216,7 @@ template runTest(testName: string, create_vm, get_host_interface, create_host_co
         for i in bn.len..<res.output_size.int:
           let b = cast[ptr UncheckedArray[byte]](res.output_data)[i]
           check b == 0.byte
-      res.release(res)
+      res.destroy()
 
       var empty_key: evmc_bytes32
       let val = hc.getStorage(address, empty_key)

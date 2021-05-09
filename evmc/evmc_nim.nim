@@ -103,3 +103,7 @@ proc execute*(vm: EvmcVM, rev: evmc_revision, msg: evmc_message, code: openArray
 
 proc destroy*(vm: EvmcVM) =
   vm.vm.destroy(vm.vm)
+
+proc destroy*(res: var evmc_result) =
+  if not res.release.isNil:
+    res.release(res.unsafeAddr)

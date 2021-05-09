@@ -271,7 +271,7 @@ type
   # The result is passed by pointer to avoid (shallow) copy of the ::evmc_result
   # struct. Think of this as the best possible C language approximation to
   # passing objects by reference.
-  evmc_release_result_fn* = proc(result: var evmc_result) {.cdecl.}
+  evmc_release_result_fn* = proc(result: ptr evmc_result) {.cdecl.}
 
   # The EVM code execution result.
   evmc_result* = object
