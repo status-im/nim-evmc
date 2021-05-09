@@ -99,7 +99,7 @@ proc setOption*(vm: EvmcVM, name, value: string): evmc_set_option_result =
   result = EVMC_SET_OPTION_INVALID_NAME
 
 proc execute*(vm: EvmcVM, rev: evmc_revision, msg: evmc_message, code: openArray[byte]): evmc_result =
-  vm.vm.execute(vm.vm, vm.hc.host, vm.hc.context, rev, msg, code[0].unsafeAddr, code.len.csize_t)
+  vm.vm.execute(vm.vm, vm.hc.host, vm.hc.context, rev, msg.unsafeAddr, code[0].unsafeAddr, code.len.csize_t)
 
 proc destroy*(vm: EvmcVM) =
   vm.vm.destroy(vm.vm)

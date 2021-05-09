@@ -607,7 +607,7 @@ type
   # @return           The execution result.
   evmc_execute_fn* = proc(vm: ptr evmc_vm, host: ptr evmc_host_interface,
                           context: evmc_host_context, rev: evmc_revision,
-                          msg: evmc_message, code: ptr byte, code_size: csize_t): evmc_result {.cdecl.}
+                          msg: ptr evmc_message, code: ptr byte, code_size: csize_t): evmc_result {.cdecl.}
 
   # Possible capabilities of a VM. (Bit shift positions).
   evmc_capability_bit_shifts* = enum
