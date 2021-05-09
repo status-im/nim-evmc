@@ -55,17 +55,17 @@ proc copyCode*(ctx: HostContext, address: evmc_address, codeOffset: int = 0): se
   let size = ctx.getCodeSize(address)
   if size - codeOffset > 0:
     result = newSeq[byte](size - codeOffset)
-    let read = ctx.host.copy_code(ctx.context, address.unsafeAddr, code_offset.uint, result[0].addr, result.len.uint).int
+    let read = ctx.host.copy_code(ctx.context, address.unsafeAddr, code_offset.csize_t, result[0].addr, result.len.csize_t).int
     doAssert(read == result.len)
 
 proc copyCode*(ctx: HostContext, address: evmc_address, codeOffset: int, output: ptr byte, output_len: int): int =
-  ctx.host.copy_code(ctx.context, address.unsafeAddr, code_offset.uint, output, output_len.uint).int
+  ctx.host.copy_code(ctx.context, address.unsafeAddr, code_offset.csize_t, output, output_len.csize_t).int
 
 proc selfdestruct*(ctx: HostContext, address, beneficiary: evmc_address) =
   ctx.host.selfdestruct(ctx.context, address.unsafeAddr, beneficiary.unsafeAddr)
 
 proc emitLog*(ctx: HostContext, address: evmc_address, data: openArray[byte], topics: openArray[evmc_bytes32]) =
-  ctx.host.emit_log(ctx.context, address.unsafeAddr, data[0].unsafeAddr, data.len.uint, topics[0].unsafeAddr, topics.len.uint)
+  ctx.host.emit_log(ctx.context, address.unsafeAddr, data[0].unsafeAddr, data.len.csize_t, topics[0].unsafeAddr, topics.len.csize_t)
 
 proc call*(ctx: HostContext, msg: evmc_message): evmc_result =
   ctx.host.call(ctx.context, msg.unsafeAddr)
@@ -99,7 +99,7 @@ proc setOption*(vm: EvmcVM, name, value: string): evmc_set_option_result =
   result = EVMC_SET_OPTION_INVALID_NAME
 
 proc execute*(vm: EvmcVM, rev: evmc_revision, msg: evmc_message, code: openArray[byte]): evmc_result =
-  vm.vm.execute(vm.vm, vm.hc.host, vm.hc.context, rev, msg, code[0].unsafeAddr, code.len.uint)
+  vm.vm.execute(vm.vm, vm.hc.host, vm.hc.context, rev, msg, code[0].unsafeAddr, code.len.csize_t)
 
 proc destroy*(vm: EvmcVM) =
   vm.vm.destroy(vm.vm)
