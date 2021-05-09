@@ -34,7 +34,7 @@ proc codeHash(acc: Account): evmc_bytes32 =
     let idx = v.int mod sizeof(result.bytes)
     result.bytes[idx] = result.bytes[idx] xor v
 
-proc evmcReleaseResultImpl(result: ptr evmc_result) {.cdecl.} =
+proc evmcReleaseResultImpl(result: var evmc_result) {.cdecl.} =
   discard
 
 proc evmcGetTxContextImpl(ctx: HostContext): evmc_tx_context {.cdecl.} =
