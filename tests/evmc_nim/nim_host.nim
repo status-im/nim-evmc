@@ -176,24 +176,20 @@ proc evmcDestroyImpl(vm: ptr evmc_vm) {.cdecl.} =
   dealloc(vm)
 
 proc init_host_interface(): evmc_host_interface =
-  # Workaround for Nim C++ codegen bug which forgets to emit the C++ cast.
-  func id[T](value: T): T {.inline.} = value
-  template CAST[P](value: untyped): P = cast[P](id(value))
-
-  result.account_exists = CAST[evmc_account_exists_fn](evmcAccountExistsImpl)
-  result.get_storage = CAST[evmc_get_storage_fn](evmcGetStorageImpl)
-  result.set_storage = CAST[evmc_set_storage_fn](evmcSetStorageImpl)
-  result.get_balance = CAST[evmc_get_balance_fn](evmcGetBalanceImpl)
-  result.get_code_size = CAST[evmc_get_code_size_fn](evmcGetCodeSizeImpl)
-  result.get_code_hash = CAST[evmc_get_code_hash_fn](evmcGetCodeHashImpl)
-  result.copy_code = CAST[evmc_copy_code_fn](evmcCopyCodeImpl)
-  result.selfdestruct = CAST[evmc_selfdestruct_fn](evmcSelfdestructImpl)
-  result.call = CAST[evmc_call_fn](evmcCallImpl)
-  result.get_tx_context = CAST[evmc_get_tx_context_fn](evmcGetTxContextImpl)
-  result.get_block_hash = CAST[evmc_get_block_hash_fn](evmcGetBlockHashImpl)
-  result.emit_log = CAST[evmc_emit_log_fn](evmcEmitLogImpl)
-  result.access_account = CAST[evmc_access_account_fn](evmcAccessAccountImpl)
-  result.access_storage = CAST[evmc_access_storage_fn](evmcAccessStorageImpl)
+  result.account_exists = evmcAccountExistsImpl
+  result.get_storage    = evmcGetStorageImpl
+  result.set_storage    = evmcSetStorageImpl
+  result.get_balance    = evmcGetBalanceImpl
+  result.get_code_size  = evmcGetCodeSizeImpl
+  result.get_code_hash  = evmcGetCodeHashImpl
+  result.copy_code      = evmcCopyCodeImpl
+  result.selfdestruct   = evmcSelfdestructImpl
+  result.call           = evmcCallImpl
+  result.get_tx_context = evmcGetTxContextImpl
+  result.get_block_hash = evmcGetBlockHashImpl
+  result.emit_log       = evmcEmitLogImpl
+  result.access_account = evmcAccessAccountImpl
+  result.access_storage = evmcAccessStorageImpl
 
 const
   EVMC_HOST_NAME = "example_vm"
