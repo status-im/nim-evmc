@@ -71,17 +71,17 @@ proc evmcGetBalanceImpl(ctx: HostContext, address: var evmc_address): evmc_uint2
   if address in ctx.accounts:
     result = ctx.accounts[address].balance
 
-proc evmcGetCodeSizeImpl(ctx: HostContext, address: var evmc_address): uint {.cdecl.} =
+proc evmcGetCodeSizeImpl(ctx: HostContext, address: var evmc_address): csize_t {.cdecl.} =
   if address in ctx.accounts:
-    result = ctx.accounts[address].code.len.uint
+    result = ctx.accounts[address].code.len.csize_t
 
 proc evmcGetCodeHashImpl(ctx: HostContext, address: var evmc_address): evmc_bytes32 {.cdecl.} =
   if address in ctx.accounts:
     result = ctx.accounts[address].codeHash()
 
 proc evmcCopyCodeImpl(ctx: HostContext, address: var evmc_address,
-                            code_offset: uint, buffer_data: ptr byte,
-                            buffer_size: uint): uint {.cdecl.} =
+                            code_offset: csize_t, buffer_data: ptr byte,
+                            buffer_size: csize_t): csize_t {.cdecl.} =
 
   if address notin ctx.accounts:
     return 0
@@ -93,14 +93,14 @@ proc evmcCopyCodeImpl(ctx: HostContext, address: var evmc_address,
   let n = min(buffer_size.int, acc.code.len - code_offset.int)
   if n > 0:
     copyMem(buffer_data, acc.code[code_offset].addr, n)
-  result = n.uint
+  result = n.csize_t
 
 proc evmcSelfdestructImpl(ctx: HostContext, address, beneficiary: var evmc_address) {.cdecl.} =
   discard
 
 proc evmcEmitLogImpl(ctx: HostContext, address: var evmc_address,
-                           data: ptr byte, data_size: uint,
-                           topics: ptr evmc_bytes32, topics_count: uint) {.cdecl.} =
+                           data: ptr byte, data_size: csize_t,
+                           topics: ptr evmc_bytes32, topics_count: csize_t) {.cdecl.} =
   discard
 
 proc evmcCallImpl(ctx: HostContext, msg: var evmc_message): evmc_result {.cdecl.} =
@@ -122,7 +122,7 @@ proc evmcSetOptionImpl(vm: ptr evmc_vm, name, value: cstring): evmc_set_option_r
 
 proc evmcExecuteImpl(vm: ptr evmc_vm, host: ptr evmc_host_interface,
                           ctx: HostContext, rev: evmc_revision,
-                          msg: evmc_message, code: ptr byte, code_size: uint): evmc_result {.cdecl.} =
+                          msg: evmc_message, code: ptr byte, code_size: csize_t): evmc_result {.cdecl.} =
 
   var the_code = "\x43\x60\x00\x55\x43\x60\x00\x52\x59\x60\x00\xf3"
   const the_gas_used = 9 # Count the instructions, same as the C++ fake EVM.
@@ -141,7 +141,7 @@ proc evmcExecuteImpl(vm: ptr evmc_vm, host: ptr evmc_host_interface,
     result.status_code = EVMC_SUCCESS
     result.gas_left = msg.gas - the_gas_used
     result.output_data = cast[ptr byte](output_data)
-    result.output_size = output_size.uint
+    result.output_size = output_size.csize_t
     result.release = evmcReleaseResultImpl
     return
 
