@@ -1,4 +1,4 @@
-# Nim&nbsp;EVMC - Ethereum Virtual Machine binary compatible interface
+# Nim&nbsp;EVMC - Ethereum VM binary compatible interface
 
 [![Build Status (Travis)](https://img.shields.io/travis/status-im/nim-evmc/master.svg?label=Linux%20/%20macOS "Linux/macOS build status (Travis)")](https://travis-ci.org/status-im/nim-evmc)
 [![Windows build status (Appveyor)](https://img.shields.io/appveyor/ci/nimbus/nim-evmc/master.svg?label=Windows "Windows build status (Appveyor)")](https://ci.appveyor.com/project/nimbus/nim-evmc)
