@@ -7,6 +7,7 @@
 ![Stability: unstable](https://img.shields.io/badge/stability-unstable-yellow.svg)
 [![Build status Linux/Macos (Travis)](https://img.shields.io/travis/status-im/nim-evmc/master.svg?label=Linux%20+%20MacOS "Build status Linux/MacOS (Travis)")](https://travis-ci.org/status-im/nim-evmc)
 [![Build status Windows (Appveyor)](https://img.shields.io/appveyor/ci/nimbus/nim-evmc/master.svg?label=Windows "Build status Windows (Appveyor)")](https://ci.appveyor.com/project/nimbus/nim-evmc)
+![Github action](https://github.com/status-im/nim-evmc/workflows/nim-evmc%20CI/badge.svg)
 
 </div>
 
