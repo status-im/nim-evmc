@@ -700,7 +700,7 @@ type
   # "beta-interpreter" implementation may be named libbeta-interpreter.so.
   #
   # @return  The VM instance or NULL indicating instance creation failure.
-  evmc_create_vm_name_fn = proc(): ptr evmc_vm {.cdecl.}
+  evmc_create_vm_name_fn* = proc(): ptr evmc_vm {.cdecl.}
 
 const
   # The maximum EVM revision supported.
