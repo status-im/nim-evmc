@@ -22,6 +22,9 @@ type
     tx_context: evmc_tx_context
     accounts: Table[evmc_address, Account]
 
+proc evmcHostContext(p: evmc_host_context): HostContext =
+  return cast[HostContext](p)
+
 proc hash(x: evmc_bytes32): Hash =
   result = hash(x.bytes)
 
@@ -37,24 +40,29 @@ proc codeHash(acc: Account): evmc_bytes32 =
 proc evmcReleaseResultImpl(result: var evmc_result) {.cdecl.} =
   discard
 
-proc evmcGetTxContextImpl(ctx: HostContext): evmc_tx_context {.cdecl.} =
+proc evmcGetTxContextImpl(p: evmc_host_context): evmc_tx_context {.cdecl.} =
+  let ctx = evmcHostContext(p)
   ctx.tx_context
 
-proc evmcGetBlockHashImpl(ctx: HostContext, number: int64): evmc_bytes32 {.cdecl.} =
+proc evmcGetBlockHashImpl(p: evmc_host_context, number: int64): evmc_bytes32 {.cdecl.} =
+  let ctx = evmcHostContext(p)
   const hash = hexToByteArray[32]("0xb10c8a5fb10c8a5fb10c8a5fb10c8a5fb10c8a5fb10c8a5fb10c8a5fb10c8a5f")
   let current_block_number = ctx.tx_context.block_number
   if number < current_block_number and number >= current_block_number - 256:
     result.bytes = hash
 
-proc evmcAccountExistsImpl(ctx: HostContext, address: var evmc_address): c99bool {.cdecl.} =
+proc evmcAccountExistsImpl(p: evmc_host_context, address: var evmc_address): c99bool {.cdecl.} =
+  let ctx = evmcHostContext(p)
   address in ctx.accounts
 
-proc evmcGetStorageImpl(ctx: HostContext, address: var evmc_address, key: var evmc_bytes32): evmc_bytes32 {.cdecl.} =
+proc evmcGetStorageImpl(p: evmc_host_context, address: var evmc_address, key: var evmc_bytes32): evmc_bytes32 {.cdecl.} =
+  let ctx = evmcHostContext(p)
   if address in ctx.accounts:
     result = ctx.accounts[address].storage[key]
 
-proc evmcSetStorageImpl(ctx: HostContext, address: var evmc_address,
+proc evmcSetStorageImpl(p: evmc_host_context, address: var evmc_address,
                         key, value: var evmc_bytes32): evmc_storage_status {.cdecl.} =
+  let ctx = evmcHostContext(p)
 
   if address in ctx.accounts:
     var acc = ctx.accounts[address]
@@ -67,21 +75,25 @@ proc evmcSetStorageImpl(ctx: HostContext, address: var evmc_address,
     ctx.accounts[address] = acc
     result = EVMC_STORAGE_MODIFIED
 
-proc evmcGetBalanceImpl(ctx: HostContext, address: var evmc_address): evmc_uint256be {.cdecl.} =
+proc evmcGetBalanceImpl(p: evmc_host_context, address: var evmc_address): evmc_uint256be {.cdecl.} =
+  let ctx = evmcHostContext(p)
   if address in ctx.accounts:
     result = ctx.accounts[address].balance
 
-proc evmcGetCodeSizeImpl(ctx: HostContext, address: var evmc_address): csize_t {.cdecl.} =
+proc evmcGetCodeSizeImpl(p: evmc_host_context, address: var evmc_address): csize_t {.cdecl.} =
+  let ctx = evmcHostContext(p)
   if address in ctx.accounts:
     result = ctx.accounts[address].code.len.csize_t
 
-proc evmcGetCodeHashImpl(ctx: HostContext, address: var evmc_address): evmc_bytes32 {.cdecl.} =
+proc evmcGetCodeHashImpl(p: evmc_host_context, address: var evmc_address): evmc_bytes32 {.cdecl.} =
+  let ctx = evmcHostContext(p)
   if address in ctx.accounts:
     result = ctx.accounts[address].codeHash()
 
-proc evmcCopyCodeImpl(ctx: HostContext, address: var evmc_address,
+proc evmcCopyCodeImpl(p: evmc_host_context, address: var evmc_address,
                             code_offset: csize_t, buffer_data: ptr byte,
                             buffer_size: csize_t): csize_t {.cdecl.} =
+  let ctx = evmcHostContext(p)
 
   if address notin ctx.accounts:
     return 0
@@ -95,15 +107,16 @@ proc evmcCopyCodeImpl(ctx: HostContext, address: var evmc_address,
     copyMem(buffer_data, acc.code[code_offset].addr, n)
   result = n.csize_t
 
-proc evmcSelfdestructImpl(ctx: HostContext, address, beneficiary: var evmc_address) {.cdecl.} =
+proc evmcSelfdestructImpl(p: evmc_host_context, address, beneficiary: var evmc_address) {.cdecl.} =
+  let ctx = evmcHostContext(p)
   discard
 
-proc evmcEmitLogImpl(ctx: HostContext, address: var evmc_address,
+proc evmcEmitLogImpl(p: evmc_host_context, address: var evmc_address,
                            data: ptr byte, data_size: csize_t,
                            topics: ptr evmc_bytes32, topics_count: csize_t) {.cdecl.} =
   discard
 
-proc evmcCallImpl(ctx: HostContext, msg: var evmc_message): evmc_result {.cdecl.} =
+proc evmcCallImpl(p: evmc_host_context, msg: var evmc_message): evmc_result {.cdecl.} =
   result = evmc_result(status_code: EVMC_REVERT, gas_left: msg.gas, output_data: msg.input_data, output_size: msg.input_size)
 
 proc evmcSetOptionImpl(vm: ptr evmc_vm, name, value: cstring): evmc_set_option_result {.cdecl.} =
@@ -121,9 +134,9 @@ proc evmcSetOptionImpl(vm: ptr evmc_vm, name, value: cstring): evmc_set_option_r
   return EVMC_SET_OPTION_INVALID_NAME
 
 proc evmcExecuteImpl(vm: ptr evmc_vm, host: ptr evmc_host_interface,
-                          ctx: HostContext, rev: evmc_revision,
+                          p: evmc_host_context, rev: evmc_revision,
                           msg: evmc_message, code: ptr byte, code_size: csize_t): evmc_result {.cdecl.} =
-
+  let ctx = evmcHostContext(p)
   var the_code = "\x43\x60\x00\x55\x43\x60\x00\x52\x59\x60\x00\xf3"
   const the_gas_used = 9 # Count the instructions, same as the C++ fake EVM.
 
@@ -133,7 +146,7 @@ proc evmcExecuteImpl(vm: ptr evmc_vm, host: ptr evmc_host_interface,
     var value, key: evmc_bytes32
     value.bytes[31] = byte(tx_context.block_number)
     var dest = msg.destination
-    discard ctx.evmcSetStorageImpl(dest, key, value)
+    discard p.evmcSetStorageImpl(dest, key, value)
     var output_data = alloc(output_size)
     var bn = $tx_context.block_number
     zeroMem(output_data, output_size)
@@ -203,7 +216,8 @@ proc nim_host_create_context(tx_context: evmc_tx_context): HostContext {.exportc
   result.accounts[address] = acc
   GC_ref(result)
 
-proc nim_host_destroy_context(ctx: HostContext) {.exportc, cdecl.} =
+proc nim_host_destroy_context(p: evmc_host_context) {.exportc, cdecl.} =
+  let ctx = evmcHostContext(p)
   GC_unref(ctx)
 
 proc nim_create_example_vm(): ptr evmc_vm {.exportc, cdecl.} =
