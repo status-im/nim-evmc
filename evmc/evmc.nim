@@ -13,7 +13,7 @@
 # The EVMC ABI version always equals the major version number of the EVMC project.
 # The Host SHOULD check if the ABI versions match when dynamically loading VMs.
 const
-  EVMC_ABI_VERSION* = 8.cint
+  EVMC_ABI_VERSION* = 9.cint
 
 # EVMC adopts the C99 standard, and one of its interfaces uses C99 `bool`.
 #
@@ -124,6 +124,7 @@ type
     block_gas_limit* : int64          # The block gas limit.
     block_difficulty*: evmc_uint256be # The block difficulty.
     chain_id*        : evmc_uint256be # The blockchain's ChainID.
+    block_base_fee*  : evmc_uint256be # The block base fee.
 
   # @struct evmc_host_context
   # The opaque data type representing the Host execution context.
@@ -627,6 +628,10 @@ type
     # The Berlin revision.
     # The spec draft: https://eips.ethereum.org/EIPS/eip-2070.
     EVMC_BERLIN = 8
+
+    # The London revision.
+    # The spec draft: https://github.com/ethereum/eth1.0-specs/blob/master/network-upgrades/mainnet-upgrades/london.md
+    EVMC_LONDON = 9
 
   # Executes the given code using the input from the message.
   #

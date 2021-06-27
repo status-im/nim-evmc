@@ -44,7 +44,7 @@ enum
      *
      * @see @ref versioning
      */
-    EVMC_ABI_VERSION = 8
+    EVMC_ABI_VERSION = 9
 };
 
 
@@ -154,6 +154,7 @@ struct evmc_tx_context
     int64_t block_gas_limit;         /**< The block gas limit. */
     evmc_uint256be block_difficulty; /**< The block difficulty. */
     evmc_uint256be chain_id;         /**< The blockchain's ChainID. */
+    evmc_uint256be block_base_fee;   /**< The block base fee. */
 };
 
 /**
