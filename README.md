@@ -44,6 +44,10 @@ kinds of calls are in this API.
 
 ## Current status
 
+__2021-06-27__
+- Supports EVMC API version 9.0.0.  This API is suitable for transactions up to
+and including Ethereum *London*.
+
 __2021-05-08__
 - Supports EVMC API version 8.0.0.  This API is suitable for transactions up to
 and including Ethereum *Berlin*, the current version on mainnet at the time of
