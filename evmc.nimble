@@ -15,6 +15,8 @@ proc test(name: string, lang: string = "cpp") =
     mkDir "build"
   --run
   switch("out", ("./build/" & name))
+  switch("styleCheck", "usages")
+  switch("styleCheck", "error")
   setCommand lang, "tests/" & name & ".nim"
 
 task test_debug, "Run all tests - test implementation":

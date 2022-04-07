@@ -55,11 +55,11 @@ proc copyCode*(ctx: HostContext, address: var evmc_address, codeOffset: int = 0)
   let size = ctx.getCodeSize(address)
   if size - codeOffset > 0:
     result = newSeq[byte](size - codeOffset)
-    let read = ctx.host.copy_code(ctx.context, address, code_offset.csize_t, result[0].addr, result.len.csize_t).int
+    let read = ctx.host.copy_code(ctx.context, address, codeOffset.csize_t, result[0].addr, result.len.csize_t).int
     doAssert(read == result.len)
 
 proc copyCode*(ctx: HostContext, address: var evmc_address, codeOffset: int, output: ptr byte, output_len: int): int =
-  ctx.host.copy_code(ctx.context, address, code_offset.csize_t, output, output_len.csize_t).int
+  ctx.host.copy_code(ctx.context, address, codeOffset.csize_t, output, output_len.csize_t).int
 
 proc selfdestruct*(ctx: HostContext, address, beneficiary: var evmc_address) =
   ctx.host.selfdestruct(ctx.context, address, beneficiary)

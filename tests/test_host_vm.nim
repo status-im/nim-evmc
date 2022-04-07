@@ -18,10 +18,10 @@ import stew/byteutils
 
 {.compile: "evmc_c/example_host.cpp".}
 {.compile: "evmc_c/example_vm.cpp".}
-{.passL: "-lstdc++"}
+{.passl: "-lstdc++"}
 
 when defined(posix):
-  {.passC: "-std=c++14".}
+  {.passc: "-std=c++14".}
 
 # The original EVMC C/C++ `example_host_create_context` test code wants struct
 # `evmc_tx_context` passed by value, and `(tx_context: evmc_tx_context)` looks
