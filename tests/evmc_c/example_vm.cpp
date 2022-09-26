@@ -1,5 +1,5 @@
 // EVMC: Ethereum Client-VM Connector API.
-// Copyright 2016-2020 The EVMC Authors.
+// Copyright 2016 The EVMC Authors.
 // Licensed under the Apache License, Version 2.0.
 
 /// @file
@@ -52,19 +52,19 @@ evmc_capabilities_flagset get_capabilities(evmc_vm* /*instance*/)
 /// VMs are allowed to omit this method implementation.
 enum evmc_set_option_result set_option(evmc_vm* instance, const char* name, const char* value)
 {
-    ExampleVM* vm = static_cast<ExampleVM*>(instance);
+    auto* vm = static_cast<ExampleVM*>(instance);
     if (std::strcmp(name, "verbose") == 0)
     {
         if (value == nullptr)
             return EVMC_SET_OPTION_INVALID_VALUE;
 
         char* end = nullptr;
-        long int v = std::strtol(value, &end, 0);
+        auto v = std::strtol(value, &end, 0);
         if (end == value)  // Parsing the value failed.
             return EVMC_SET_OPTION_INVALID_VALUE;
         if (v > 9 || v < -1)  // Not in the valid range.
             return EVMC_SET_OPTION_INVALID_VALUE;
-        vm->verbose = (int)v;
+        vm->verbose = static_cast<int>(v);
         return EVMC_SET_OPTION_SUCCESS;
     }
 
@@ -74,7 +74,7 @@ enum evmc_set_option_result set_option(evmc_vm* instance, const char* name, cons
 /// The Example VM stack representation.
 struct Stack
 {
-    evmc_uint256be items[1024];       ///< The array of stack items, uninitialized.
+    evmc_uint256be items[1024] = {};  ///< The array of stack items.
     evmc_uint256be* pointer = items;  ///< The pointer to the currently first empty stack slot.
 
     /// Pops an item from the top of the stack.
@@ -167,7 +167,7 @@ evmc_result execute(evmc_vm* instance,
                     const uint8_t* code,
                     size_t code_size)
 {
-    ExampleVM* vm = static_cast<ExampleVM*>(instance);
+    auto* vm = static_cast<ExampleVM*>(instance);
 
     if (vm->verbose > 0)
         std::puts("execution started\n");
@@ -181,15 +181,15 @@ evmc_result execute(evmc_vm* instance,
         // Check remaining gas, assume each instruction costs 1.
         gas_left -= 1;
         if (gas_left < 0)
-            return evmc_make_result(EVMC_OUT_OF_GAS, 0, nullptr, 0);
+            return evmc_make_result(EVMC_OUT_OF_GAS, 0, 0, nullptr, 0);
 
         switch (code[pc])
         {
         default:
-            return evmc_make_result(EVMC_UNDEFINED_INSTRUCTION, 0, nullptr, 0);
+            return evmc_make_result(EVMC_UNDEFINED_INSTRUCTION, 0, 0, nullptr, 0);
 
         case OP_STOP:
-            return evmc_make_result(EVMC_SUCCESS, gas_left, nullptr, 0);
+            return evmc_make_result(EVMC_SUCCESS, gas_left, 0, nullptr, 0);
 
         case OP_ADD:
         {
@@ -202,7 +202,7 @@ evmc_result execute(evmc_vm* instance,
 
         case OP_ADDRESS:
         {
-            evmc_uint256be value = to_uint256(msg->destination);
+            evmc_uint256be value = to_uint256(msg->recipient);
             stack.push(value);
             break;
         }
@@ -235,14 +235,14 @@ evmc_result execute(evmc_vm* instance,
             uint32_t index = to_uint32(stack.pop());
             evmc_uint256be value = stack.pop();
             if (!memory.store(index, value.bytes, sizeof(value)))
-                return evmc_make_result(EVMC_FAILURE, 0, nullptr, 0);
+                return evmc_make_result(EVMC_FAILURE, 0, 0, nullptr, 0);
             break;
         }
 
         case OP_SLOAD:
         {
             evmc_uint256be index = stack.pop();
-            evmc_uint256be value = host->get_storage(context, &msg->destination, &index);
+            evmc_uint256be value = host->get_storage(context, &msg->recipient, &index);
             stack.push(value);
             break;
         }
@@ -251,7 +251,7 @@ evmc_result execute(evmc_vm* instance,
         {
             evmc_uint256be index = stack.pop();
             evmc_uint256be value = stack.pop();
-            host->set_storage(context, &msg->destination, &index, &value);
+            host->set_storage(context, &msg->recipient, &index, &value);
             break;
         }
 
@@ -316,7 +316,7 @@ evmc_result execute(evmc_vm* instance,
         {
             evmc_message call_msg = {};
             call_msg.gas = to_uint32(stack.pop());
-            call_msg.destination = to_address(stack.pop());
+            call_msg.recipient = to_address(stack.pop());
             call_msg.value = stack.pop();
 
             uint32_t call_input_offset = to_uint32(stack.pop());
@@ -329,11 +329,11 @@ evmc_result execute(evmc_vm* instance,
             uint8_t* call_output_ptr = memory.expand(call_output_offset, call_output_size);
 
             if (call_msg.input_data == nullptr || call_output_ptr == nullptr)
-                return evmc_make_result(EVMC_FAILURE, 0, nullptr, 0);
+                return evmc_make_result(EVMC_FAILURE, 0, 0, nullptr, 0);
 
             evmc_result call_result = host->call(context, &call_msg);
 
-            evmc_uint256be value = to_uint256(call_result.status_code == EVMC_SUCCESS);
+            evmc_uint256be value = to_uint256(call_result.status_code == EVMC_SUCCESS ? 1 : 0);
             stack.push(value);
 
             if (call_output_size > call_result.output_size)
@@ -351,28 +351,28 @@ evmc_result execute(evmc_vm* instance,
             uint32_t output_size = to_uint32(stack.pop());
             uint8_t* output_ptr = memory.expand(output_offset, output_size);
             if (output_ptr == nullptr)
-                return evmc_make_result(EVMC_FAILURE, 0, nullptr, 0);
+                return evmc_make_result(EVMC_FAILURE, 0, 0, nullptr, 0);
 
-            return evmc_make_result(EVMC_SUCCESS, gas_left, output_ptr, output_size);
+            return evmc_make_result(EVMC_SUCCESS, gas_left, 0, output_ptr, output_size);
         }
 
         case OP_REVERT:
         {
             if (rev < EVMC_BYZANTIUM)
-                return evmc_make_result(EVMC_UNDEFINED_INSTRUCTION, 0, nullptr, 0);
+                return evmc_make_result(EVMC_UNDEFINED_INSTRUCTION, 0, 0, nullptr, 0);
 
             uint32_t output_offset = to_uint32(stack.pop());
             uint32_t output_size = to_uint32(stack.pop());
             uint8_t* output_ptr = memory.expand(output_offset, output_size);
             if (output_ptr == nullptr)
-                return evmc_make_result(EVMC_FAILURE, 0, nullptr, 0);
+                return evmc_make_result(EVMC_FAILURE, 0, 0, nullptr, 0);
 
-            return evmc_make_result(EVMC_REVERT, gas_left, output_ptr, output_size);
+            return evmc_make_result(EVMC_REVERT, gas_left, 0, output_ptr, output_size);
         }
         }
     }
 
-    return evmc_make_result(EVMC_SUCCESS, gas_left, nullptr, 0);
+    return evmc_make_result(EVMC_SUCCESS, gas_left, 0, nullptr, 0);
 }
 
 

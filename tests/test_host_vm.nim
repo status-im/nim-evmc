@@ -17,7 +17,7 @@ import stew/byteutils
   import evmc_nim/nim_host
 
 # since upgrade to gcc 11.2.0 and nim 1.12.6
-# {.compile: "evmc_c/example_host.cpp".} failed to compile, probably a bug in gcc 11.2.0
+#{.compile: "evmc_c/example_host.cpp".} # failed to compile, probably a bug in gcc 11.2.0
 # disable it for now, we can enable it in the future
 
 #{.compile: "evmc_c/example_host.cpp".}
@@ -25,7 +25,7 @@ import stew/byteutils
 #{.passl: "-lstdc++"}
 
 #when defined(posix):
-#  {.passc: "-std=c++14".}
+#  {.passc: "-std=c++1z".}
 
 # The original EVMC C/C++ `example_host_create_context` test code wants struct
 # `evmc_tx_context` passed by value, and `(tx_context: evmc_tx_context)` looks

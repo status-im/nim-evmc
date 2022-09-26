@@ -13,7 +13,7 @@
 # The EVMC ABI version always equals the major version number of the EVMC project.
 # The Host SHOULD check if the ABI versions match when dynamically loading VMs.
 const
-  EVMC_ABI_VERSION* = 9.cint
+  EVMC_ABI_VERSION* = 10.cint
 
 # EVMC adopts the C99 standard, and one of its interfaces uses C99 `bool`.
 #
@@ -87,18 +87,33 @@ type
     flags*: evmc_flags
 
     # The call depth.
+    # Defined as `e` in the Yellow Paper.
     depth*: int32
 
     # The amount of gas for message execution.
+    # Defined as `g` in the Yellow Paper.-
     gas*: int64
 
-    # The destination of the message.
+    # The recipient of the message.
+    # This is the address of the account which storage/balance/nonce is going to be modified
+    # by the message execution. In case of ::EVMC_CALL, this is also the account where the
+    # message value evmc_message::value is going to be transferred.
+    # For ::EVMC_CALLCODE or ::EVMC_DELEGATECALL, this may be different from
+    # the evmc_message::code_address.
+    #
+    # Defined as `r` in the Yellow Paper.
     destination*: evmc_address
 
     # The sender of the message.
+    # The address of the sender of a message call defined as `s` in the Yellow Paper.
+    # This must be the message recipient of the message at the previous (lower) depth,
+    # except for the ::EVMC_DELEGATECALL where recipient is the 2 levels above the present depth.
+    # At the depth 0 this must be the transaction origin.
     sender*: evmc_address
 
     # The message input data.
+    # The arbitrary length byte array of the input data of the call,
+    # defined as `d` in the Yellow Paper.
     # This MAY be NULL.
     input_data*: ptr byte
 
@@ -108,23 +123,38 @@ type
     input_size*: csize_t
 
     # The amount of Ether transferred with the message.
+    # This is transferred value for ::EVMC_CALL or apparent value for ::EVMC_DELEGATECALL.
+    # Defined as `v` or `v~` in the Yellow Paper.
     value*: evmc_uint256be
 
     # The optional value used in new contract address construction.
     # Ignored unless kind is EVMC_CREATE2.
     create2_salt*: evmc_bytes32
 
+    # The address of the code to be executed.
+    #
+    # For ::EVMC_CALLCODE or ::EVMC_DELEGATECALL this may be different from
+    # the evmc_message::recipient.
+    # Not required when invoking evmc_execute_fn(), only when invoking evmc_call_fn().
+    # Ignored if kind is ::EVMC_CREATE or ::EVMC_CREATE2.
+    #
+    # In case of ::EVMC_CAPABILITY_PRECOMPILES implementation, this fields should be inspected
+    # to identify the requested precompile.
+    #
+    # Defined as `c` in the Yellow Paper.
+    code_address*: evmc_address
+
   # The transaction and block data for execution.
   evmc_tx_context* = object
-    tx_gas_price*    : evmc_uint256be # The transaction gas price.
-    tx_origin*       : evmc_address   # The transaction origin account.
-    block_coinbase*  : evmc_address   # The miner of the block.
-    block_number*    : int64          # The block number.
-    block_timestamp* : int64          # The block timestamp.
-    block_gas_limit* : int64          # The block gas limit.
-    block_difficulty*: evmc_uint256be # The block difficulty.
-    chain_id*        : evmc_uint256be # The blockchain's ChainID.
-    block_base_fee*  : evmc_uint256be # The block base fee.
+    tx_gas_price*     : evmc_uint256be # The transaction gas price.
+    tx_origin*        : evmc_address   # The transaction origin account.
+    block_coinbase*   : evmc_address   # The miner of the block.
+    block_number*     : int64          # The block number.
+    block_timestamp*  : int64          # The block timestamp.
+    block_gas_limit*  : int64          # The block gas limit.
+    block_prev_randao*: evmc_uint256be # The block previous RANDAO (EIP-4399).
+    chain_id*         : evmc_uint256be # The blockchain's ChainID.
+    block_base_fee*   : evmc_uint256be # The block base fee per gas (EIP-1559, EIP-3198).
 
   # @struct evmc_host_context
   # The opaque data type representing the Host execution context.
@@ -362,28 +392,77 @@ type
 
   # The effect of an attempt to modify a contract storage item.
   #
+  # See @ref storagestatus for additional information about design of this enum
+  # and analysis of the specification.
+  #
   # For the purpose of explaining the meaning of each element, the following
   # notation is used:
   # - 0 is zero value,
   # - X != 0 (X is any value other than 0),
-  # - Y != X, Y != 0 (Y is any value other than X and 0),
-  # - Z != Y (Z is any value other than Y),
-  # - the "->" means the change from one value to another.
+  # - Y != 0, Y != X,  (Y is any value other than X and 0),
+  # - Z != 0, Z != X, Z != X (Z is any value other than Y and X and 0),
+  # - the "o -> c -> v" triple describes the change status in the context of:
+  #   - o: original value (cold value before a transaction started),
+  #   - c: current storage value,
+  #   - v: new storage value to be set.
+  #
+  # The order of elements follows EIPs introducing net storage gas costs:
+  # - EIP-2200: https://eips.ethereum.org/EIPS/eip-2200,
+  # - EIP-1283: https://eips.ethereum.org/EIPS/eip-1283.
   evmc_storage_status* {.size: sizeof(cenum_small_range).} = enum
-    # The value of a storage item has been left unchanged: 0 -> 0 and X -> X.
-    EVMC_STORAGE_UNCHANGED = 0
+    # The new/same value is assigned to the storage item without affecting the cost structure.
+    #
+    # The storage value item is either:
+    # - left unchanged (c == v) or
+    # - the dirty value (o != c) is modified again (c != v).
+    # This is the group of cases related to minimal gas cost of only accessing warm storage.
+    # 0|X   -> 0 -> 0 (current value unchanged)
+    # 0|X|Y -> Y -> Y (current value unchanged)
+    # 0|X   -> Y -> Z (modified previously added/modified value)
+    #
+    # This is "catch all remaining" status. I.e. if all other statuses are correctly matched
+    # this status should be assigned to all remaining cases.
+    EVMC_STORAGE_ASSIGNED = 0
 
-    # The value of a storage item has been modified: X -> Y.
-    EVMC_STORAGE_MODIFIED = 1
+    # A new storage item is added by changing
+    # the current clean zero to a nonzero value.
+    # 0 -> 0 -> Z
+    EVMC_STORAGE_ADDED = 1
 
-    # A storage item has been modified after being modified before: X -> Y -> Z.
-    EVMC_STORAGE_MODIFIED_AGAIN = 2
+    # A storage item is deleted by changing
+    # the current clean nonzero to the zero value.
+    # X -> X -> 0
+    EVMC_STORAGE_DELETED = 2
 
-    # A new storage item has been added: 0 -> X.
-    EVMC_STORAGE_ADDED = 3
+    # A storage item is modified by changing
+    # the current clean nonzero to other nonzero value.
+    # X -> X -> Z
+    EVMC_STORAGE_MODIFIED = 3
 
-    # A storage item has been deleted: X -> 0.
-    EVMC_STORAGE_DELETED = 4
+    # A storage item is added by changing
+    # the current dirty zero to a nonzero value other than the original value.
+    # X -> 0 -> Z
+    EVMC_STORAGE_DELETED_ADDED = 4
+
+    # A storage item is deleted by changing
+    # the current dirty nonzero to the zero value and the original value is not zero.
+    # X -> Y -> 0
+    EVMC_STORAGE_MODIFIED_DELETED = 5
+
+    # A storage item is added by changing
+    # the current dirty zero to the original value.
+    # X -> 0 -> X
+    EVMC_STORAGE_DELETED_RESTORED = 6
+
+    # A storage item is deleted by changing
+    # the current dirty nonzero to the original zero value.
+    # 0 -> Y -> 0
+    EVMC_STORAGE_ADDED_DELETED = 7
+
+    # A storage item is modified by changing
+    # the current dirty nonzero to the original nonzero value other than the current value.
+    # X -> Y -> X
+    EVMC_STORAGE_MODIFIED_RESTORED = 8
 
   # Set storage callback function.
   #
@@ -633,6 +712,18 @@ type
     # The spec draft: https://github.com/ethereum/eth1.0-specs/blob/master/network-upgrades/mainnet-upgrades/london.md
     EVMC_LONDON = 9
 
+    # The Paris revision (aka The Merge).
+    # https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/paris.md
+    EVMC_PARIS = 10
+
+    # The Shanghai revision.
+    # https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/shanghai.md
+    EVMC_SHANGHAI = 11
+
+    # The Cancun revision.
+    # The future next revision after Shanghai.
+    EVMC_CANCUN = 12
+
   # Executes the given code using the input from the message.
   #
   # This function MAY be invoked multiple times for a single VM instance.
@@ -748,7 +839,11 @@ type
 
 const
   # The maximum EVM revision supported.
-  EVMC_MAX_REVISION* = EVMC_BERLIN
+  EVMC_MAX_REVISION* = EVMC_CANCUN
+
+  # The latest known EVM revision with finalized specification.
+  # This is handy for EVM tools to always use the latest revision available.
+  EVMC_LATEST_STABLE_REVISION* = EVMC_LONDON
 
 # Check small-range enums have C `int` size, so the definitions in this file
 # are binary compatible with EVMC API in `evmc.h`.  On almost all targets it's

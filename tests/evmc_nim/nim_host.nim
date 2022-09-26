@@ -68,7 +68,7 @@ proc evmcSetStorageImpl(p: evmc_host_context, address: var evmc_address,
     var acc = ctx.accounts[address]
     let prev_value = acc.storage.getOrDefault(key)
     acc.storage[key] = value
-    result = if prev_value == value: EVMC_STORAGE_UNCHANGED else: EVMC_STORAGE_MODIFIED
+    result = if prev_value == value: EVMC_STORAGE_ASSIGNED else: EVMC_STORAGE_MODIFIED
   else:
     var acc = Account()
     acc.storage[key] = value
@@ -108,8 +108,7 @@ proc evmcCopyCodeImpl(p: evmc_host_context, address: var evmc_address,
   result = n.csize_t
 
 proc evmcSelfdestructImpl(p: evmc_host_context, address, beneficiary: var evmc_address) {.cdecl.} =
-  let ctx = evmcHostContext(p)
-  discard
+  discard evmcHostContext(p)
 
 proc evmcEmitLogImpl(p: evmc_host_context, address: var evmc_address,
                            data: ptr byte, data_size: csize_t,
