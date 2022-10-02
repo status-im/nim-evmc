@@ -180,6 +180,7 @@ template runTest(testName: string, create_vm, get_host_interface, create_host_co
       check res.status_code == EVMC_REVERT
       check res.gas_left == msg.gas
       check res.output_size == msg.input_size
+      check res.gas_refund == 0'i64
       check equalMem(res.output_data, msg.input_data, msg.input_size)
       # no need to release the result, it's a fake one
 
