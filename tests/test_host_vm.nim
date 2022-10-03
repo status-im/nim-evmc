@@ -97,7 +97,7 @@ template runTest(testName: string, create_vm, get_host_interface, create_host_co
     kind: EVMC_CALL,
     flags: {EVMC_STATIC},
     sender: address,
-    destination: address,
+    recipient: address,
     value: balance,
     input_data: cast[ptr byte](input[0].addr),
     input_size: input.len.csize_t,

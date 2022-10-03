@@ -102,7 +102,7 @@ type
     # the evmc_message::code_address.
     #
     # Defined as `r` in the Yellow Paper.
-    destination*: evmc_address
+    recipient*: evmc_address
 
     # The sender of the message.
     # The address of the sender of a message call defined as `s` in the Yellow Paper.

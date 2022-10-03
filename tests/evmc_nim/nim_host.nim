@@ -152,7 +152,7 @@ proc evmcExecuteImpl(vm: ptr evmc_vm, host: ptr evmc_host_interface,
     let output_size = 20
     var value, key: evmc_bytes32
     value.bytes[31] = byte(tx_context.block_number)
-    var dest = msg.destination
+    var dest = msg.recipient
     discard p.evmcSetStorageImpl(dest, key, value)
     var output_data = alloc(output_size)
     var bn = $tx_context.block_number
