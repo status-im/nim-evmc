@@ -1,15 +1,9 @@
 # Nim&nbsp;EVMC - Ethereum VM binary compatible interface
 
-<div align=right>
-
 [![License: Apache](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 ![Stability: unstable](https://img.shields.io/badge/stability-unstable-yellow.svg)
-[![Build status Linux/Macos (Travis)](https://img.shields.io/travis/status-im/nim-evmc/master.svg?label=Linux%20+%20MacOS "Build status Linux/MacOS (Travis)")](https://travis-ci.org/status-im/nim-evmc)
-[![Build status Windows (Appveyor)](https://img.shields.io/appveyor/ci/nimbus/nim-evmc/master.svg?label=Windows "Build status Windows (Appveyor)")](https://ci.appveyor.com/project/nimbus/nim-evmc)
-![Github action](https://github.com/status-im/nim-evmc/workflows/nim-evmc%20CI/badge.svg)
-
-</div>
+![Github action](https://github.com/status-im/nim-evmc/workflows/CI/badge.svg)
 
 ## Introduction to EVMC
 

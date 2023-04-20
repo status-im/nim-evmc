@@ -1,4 +1,4 @@
-name: nim-evmc CI
+name: CI
 on: [push, pull_request]
 
 jobs:
@@ -27,19 +27,19 @@ jobs:
         include:
           - target:
               os: linux
-            builder: ubuntu-18.04
+            builder: ubuntu-20.04
           - target:
               os: macos
-            builder: macos-10.15
+            builder: macos-11
           - target:
               os: windows
-            builder: windows-2019
+            builder: windows-latest
 
     name: '${{ matrix.target.os }}-${{ matrix.target.cpu }}-${{ matrix.target.TEST_LANG }} (${{ matrix.branch }})'
     runs-on: ${{ matrix.builder }}
     steps:
       - name: Checkout nim-evmc
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: nim-evmc
           submodules: false
@@ -67,7 +67,7 @@ jobs:
       - name: Restore MinGW-W64 (Windows) from cache
         if: runner.os == 'Windows'
         id: windows-mingw-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: external/mingw-${{ matrix.target.cpu }}
           key: 'mingw-${{ matrix.target.cpu }}'
@@ -75,7 +75,7 @@ jobs:
       - name: Restore Nim DLLs dependencies (Windows) from cache
         if: runner.os == 'Windows'
         id: windows-dlls-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: external/dlls-${{ matrix.target.cpu }}
           key: 'dlls-${{ matrix.target.cpu }}'
@@ -129,7 +129,7 @@ jobs:
 
       - name: Restore prebuilt Nim from cache
         id: nim-cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: NimBinaries
           key: 'NimBinaries-${{ matrix.target.os }}-${{ matrix.target.cpu }}-${{ steps.versions.outputs.nimbus_build_system }}'
