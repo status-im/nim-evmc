@@ -146,15 +146,17 @@ type
 
   # The transaction and block data for execution.
   evmc_tx_context* = object
-    tx_gas_price*     : evmc_uint256be # The transaction gas price.
-    tx_origin*        : evmc_address   # The transaction origin account.
-    block_coinbase*   : evmc_address   # The miner of the block.
-    block_number*     : int64          # The block number.
-    block_timestamp*  : int64          # The block timestamp.
-    block_gas_limit*  : int64          # The block gas limit.
-    block_prev_randao*: evmc_uint256be # The block previous RANDAO (EIP-4399).
-    chain_id*         : evmc_uint256be # The blockchain's ChainID.
-    block_base_fee*   : evmc_uint256be # The block base fee per gas (EIP-1559, EIP-3198).
+    tx_gas_price*     : evmc_uint256be   # The transaction gas price.
+    tx_origin*        : evmc_address     # The transaction origin account.
+    block_coinbase*   : evmc_address     # The miner of the block.
+    block_number*     : int64            # The block number.
+    block_timestamp*  : int64            # The block timestamp.
+    block_gas_limit*  : int64            # The block gas limit.
+    block_prev_randao*: evmc_uint256be   # The block previous RANDAO (EIP-4399).
+    chain_id*         : evmc_uint256be   # The blockchain's ChainID.
+    block_base_fee*   : evmc_uint256be   # The block base fee per gas (EIP-1559, EIP-3198).
+    blob_hashes*      : ptr evmc_bytes32 # The array of blob hashes (EIP-4844).
+    blob_hashes_count*: csize_t          # The number of blob hashes (EIP-4844).
 
   # @struct evmc_host_context
   # The opaque data type representing the Host execution context.

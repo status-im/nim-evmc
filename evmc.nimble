@@ -1,13 +1,13 @@
 mode = ScriptMode.Verbose
 
 packageName   = "evmc"
-version       = "0.0.2"
+version       = "0.10.2"
 author        = "Status Research & Development GmbH"
 description   = "A wrapper for the The Ethereum EVMC library"
 license       = "Apache License 2.0"
 skipDirs      = @["tests"]
 
-requires "nim >= 1.2.0",
+requires "nim >= 1.6.0",
          "stew"
 
 proc test(name: string, lang: string = "cpp") =
