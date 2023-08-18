@@ -396,7 +396,23 @@ type
   #  @param key      The index of the account's storage entry.
   #  @return         The storage value at the given storage key or null bytes
   #                  if the account does not exist.
-  evmc_get_storage_fn* = proc(context: evmc_host_context, address: var evmc_address, key: var evmc_bytes32): evmc_bytes32 {.cdecl.}
+  evmc_get_storage_fn* = proc(context: evmc_host_context,
+                              address: var evmc_address,
+                              key: var evmc_bytes32): evmc_bytes32 {.cdecl.}
+
+  # Get transient storage callback function.
+  #
+  # This callback function is used by a VM to query
+  # the given account transient storage (EIP-1153) entry.
+  #
+  # @param context  The Host execution context.
+  # @param address  The address of the account.
+  # @param key      The index of the account's transient storage entry.
+  # @return         The transient storage value at the given storage key or null bytes
+  #                 if the account does not exist.
+  evmc_get_transient_storage_fn* = proc(context: evmc_host_context,
+                                        address: var evmc_address,
+                                        key: var evmc_bytes32): evmc_bytes32 {.cdecl.}
 
   # The effect of an attempt to modify a contract storage item.
   #
@@ -486,6 +502,22 @@ type
   # @return         The effect on the storage item.
   evmc_set_storage_fn* = proc(context: evmc_host_context, address: var evmc_address,
                               key, value: var evmc_bytes32): evmc_storage_status {.cdecl.}
+
+
+  # Set transient storage callback function.
+  #
+  # This callback function is used by a VM to update
+  # the given account's transient storage (EIP-1153) entry.
+  # The VM MUST make sure that the account exists. This requirement is only a formality because
+  # VM implementations only modify storage of the account of the current execution context
+  # (i.e. referenced by evmc_message::recipient).
+  #
+  # @param context  The pointer to the Host execution context.
+  # @param address  The address of the account.
+  # @param key      The index of the transient storage entry.
+  # @param value    The value to be stored.
+  evmc_set_transient_storage_fn* = proc(context: evmc_host_context, address: var evmc_address,
+                                        key, value: var evmc_bytes32) {.cdecl.}
 
   # Get balance callback function.
   #
@@ -649,6 +681,12 @@ type
 
     # Access storage callback function.
     access_storage*: evmc_access_storage_fn
+
+    # Get transient storage callback function.
+    get_transient_storage*: evmc_get_transient_storage_fn
+
+    # Set transient storage callback function.
+    set_transient_storage*: evmc_set_transient_storage_fn
 
   # Destroys the VM instance.
   #
