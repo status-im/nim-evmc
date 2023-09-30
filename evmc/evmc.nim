@@ -13,7 +13,7 @@
 # The EVMC ABI version always equals the major version number of the EVMC project.
 # The Host SHOULD check if the ABI versions match when dynamically loading VMs.
 const
-  EVMC_ABI_VERSION* = 10.cint
+  EVMC_ABI_VERSION* = 11.cint
 
 # EVMC adopts the C99 standard, and one of its interfaces uses C99 `bool`.
 #
@@ -157,6 +157,7 @@ type
     block_base_fee*   : evmc_uint256be   # The block base fee per gas (EIP-1559, EIP-3198).
     blob_hashes*      : ptr evmc_bytes32 # The array of blob hashes (EIP-4844).
     blob_hashes_count*: csize_t          # The number of blob hashes (EIP-4844).
+    blob_base_fee*    : evmc_uint256be   # The blob base fee (EIP-7516).
 
   # @struct evmc_host_context
   # The opaque data type representing the Host execution context.
