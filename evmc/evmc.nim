@@ -1,12 +1,13 @@
 # Nimbus - EVMC binary compatible interface
 #
-# Copyright (C) 2018-2019, 2021 Status Research & Development GmbH
+# Copyright (C) 2018-2024 Status Research & Development GmbH
 # Licensed under either of
 #  * Apache License, version 2.0, ([LICENSE-APACHE](LICENSE-APACHE))
 #  * MIT license ([LICENSE-MIT](LICENSE-MIT))
 # at your option. This file may not be copied, modified, or distributed except
 # according to those terms.
 
+{.push raises: [].}
 
 # The EVMC ABI version number of the interface declared in this file.
 #
@@ -305,7 +306,7 @@ type
   # The result is passed by pointer to avoid (shallow) copy of the ::evmc_result
   # struct. Think of this as the best possible C language approximation to
   # passing objects by reference.
-  evmc_release_result_fn* = proc(result: var evmc_result) {.cdecl.}
+  evmc_release_result_fn* = proc(result: var evmc_result) {.cdecl, raises: [].}
 
   # The EVM code execution result.
   evmc_result* = object
@@ -789,7 +790,8 @@ type
   # @return           The execution result.
   evmc_execute_fn* = proc(vm: ptr evmc_vm, host: ptr evmc_host_interface,
                           context: evmc_host_context, rev: evmc_revision,
-                          msg: var evmc_message, code: ptr byte, code_size: csize_t): evmc_result {.cdecl.}
+                          msg: var evmc_message, code: ptr byte, code_size: csize_t):
+                            evmc_result {.cdecl, raises: [].}
 
   # Possible capabilities of a VM. (Bit shift positions).
   evmc_capability_bit_shifts* = enum
@@ -882,7 +884,7 @@ type
   # "beta-interpreter" implementation may be named libbeta-interpreter.so.
   #
   # @return  The VM instance or NULL indicating instance creation failure.
-  evmc_create_vm_name_fn* = proc(): ptr evmc_vm {.cdecl.}
+  evmc_create_vm_name_fn* = proc(): ptr evmc_vm {.cdecl, raises:[].}
 
 const
   # The maximum EVM revision supported.
@@ -924,3 +926,5 @@ proc toString(a: evmc_flags | evmc_capabilities): string =
 #
 proc `$`*(a: evmc_flags): string = a.toString()
 proc `$`*(a: evmc_capabilities): string = a.toString()
+
+{.pop.}
