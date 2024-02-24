@@ -7,7 +7,7 @@ jobs:
       fail-fast: false
       max-parallel: 20
       matrix:
-        branch: [master]
+        branch: [version-2-0, master]
         target:
           - os: linux
             cpu: amd64
@@ -27,10 +27,10 @@ jobs:
         include:
           - target:
               os: linux
-            builder: ubuntu-20.04
+            builder: ubuntu-latest
           - target:
               os: macos
-            builder: macos-11
+            builder: macos-latest
           - target:
               os: windows
             builder: windows-latest
