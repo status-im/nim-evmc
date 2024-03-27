@@ -14,7 +14,7 @@
 # The EVMC ABI version always equals the major version number of the EVMC project.
 # The Host SHOULD check if the ABI versions match when dynamically loading VMs.
 const
-  EVMC_ABI_VERSION* = 11.cint
+  EVMC_ABI_VERSION* = 12.cint
 
 # EVMC adopts the C99 standard, and one of its interfaces uses C99 `bool`.
 #
@@ -69,6 +69,7 @@ type
     EVMC_CALLCODE = 2     # Request CALLCODE.
     EVMC_CREATE = 3       # Request CREATE.
     EVMC_CREATE2 = 4      # Request CREATE2. Valid since Constantinople.
+    EVMC_EOFCREATE = 5    # Request EOFCREATE. Valid since Prague.
 
   # The flags for ::evmc_message. (Bit shift positions).
   evmc_flag_bit_shifts* = enum
@@ -129,7 +130,9 @@ type
     value*: evmc_uint256be
 
     # The optional value used in new contract address construction.
-    # Ignored unless kind is EVMC_CREATE2.
+    # Needed only for a Host to calculate created address when kind is ::EVMC_CREATE2 or
+    # ::EVMC_EOFCREATE.
+    # Ignored in evmc_execute_fn().
     create2_salt*: evmc_bytes32
 
     # The address of the code to be executed.
@@ -137,7 +140,7 @@ type
     # For ::EVMC_CALLCODE or ::EVMC_DELEGATECALL this may be different from
     # the evmc_message::recipient.
     # Not required when invoking evmc_execute_fn(), only when invoking evmc_call_fn().
-    # Ignored if kind is ::EVMC_CREATE or ::EVMC_CREATE2.
+    # Ignored if kind is ::EVMC_CREATE, ::EVMC_CREATE2 or ::EVMC_EOFCREATE.
     #
     # In case of ::EVMC_CAPABILITY_PRECOMPILES implementation, this fields should be inspected
     # to identify the requested precompile.
@@ -145,20 +148,34 @@ type
     # Defined as `c` in the Yellow Paper.
     code_address*: evmc_address
 
+    # The code to be executed
+    code*: ptr byte
+
+    # The length of the code to be executed.
+    code_size*: csize_t
+
+  # The hashed initcode used for TXCREATE instruction.
+  evmc_tx_initcode* = object
+    hash*: evmc_bytes32  # The initcode hash.
+    code*: ptr byte      # The code.
+    code_size*: csize_t  # The length of the code.
+
   # The transaction and block data for execution.
   evmc_tx_context* = object
-    tx_gas_price*     : evmc_uint256be   # The transaction gas price.
-    tx_origin*        : evmc_address     # The transaction origin account.
-    block_coinbase*   : evmc_address     # The miner of the block.
-    block_number*     : int64            # The block number.
-    block_timestamp*  : int64            # The block timestamp.
-    block_gas_limit*  : int64            # The block gas limit.
-    block_prev_randao*: evmc_uint256be   # The block previous RANDAO (EIP-4399).
-    chain_id*         : evmc_uint256be   # The blockchain's ChainID.
-    block_base_fee*   : evmc_uint256be   # The block base fee per gas (EIP-1559, EIP-3198).
-    blob_hashes*      : ptr evmc_bytes32 # The array of blob hashes (EIP-4844).
-    blob_hashes_count*: csize_t          # The number of blob hashes (EIP-4844).
-    blob_base_fee*    : evmc_uint256be   # The blob base fee (EIP-7516).
+    tx_gas_price*     : evmc_uint256be       # The transaction gas price.
+    tx_origin*        : evmc_address         # The transaction origin account.
+    block_coinbase*   : evmc_address         # The miner of the block.
+    block_number*     : int64                # The block number.
+    block_timestamp*  : int64                # The block timestamp.
+    block_gas_limit*  : int64                # The block gas limit.
+    block_prev_randao*: evmc_uint256be       # The block previous RANDAO (EIP-4399).
+    chain_id*         : evmc_uint256be       # The blockchain's ChainID.
+    block_base_fee*   : evmc_uint256be       # The block base fee per gas (EIP-1559, EIP-3198).
+    blob_hashes*      : ptr evmc_bytes32     # The array of blob hashes (EIP-4844).
+    blob_hashes_count*: csize_t              # The number of blob hashes (EIP-4844).
+    blob_base_fee*    : evmc_uint256be       # The blob base fee (EIP-7516).
+    initcodes*        : ptr evmc_tx_initcode # The array of transaction initcodes (TXCREATE).
+    initcodes_count*  : csize_t              # The number of transaction initcodes (TXCREATE).
 
   # @struct evmc_host_context
   # The opaque data type representing the Host execution context.
@@ -772,6 +789,10 @@ type
     # The future next revision after Shanghai.
     EVMC_CANCUN = 12
 
+    # The Prague revision.
+    # The future next revision after Cancun.
+    EVMC_PRAGUE = 13
+
   # Executes the given code using the input from the message.
   #
   # This function MAY be invoked multiple times for a single VM instance.
@@ -888,11 +909,11 @@ type
 
 const
   # The maximum EVM revision supported.
-  EVMC_MAX_REVISION* = EVMC_CANCUN
+  EVMC_MAX_REVISION* = EVMC_PRAGUE
 
   # The latest known EVM revision with finalized specification.
   # This is handy for EVM tools to always use the latest revision available.
-  EVMC_LATEST_STABLE_REVISION* = EVMC_LONDON
+  EVMC_LATEST_STABLE_REVISION* = EVMC_SHANGHAI
 
 # Check small-range enums have C `int` size, so the definitions in this file
 # are binary compatible with EVMC API in `evmc.h`.  On almost all targets it's
