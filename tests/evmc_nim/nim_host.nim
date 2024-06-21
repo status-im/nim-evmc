@@ -57,19 +57,19 @@ proc evmcAccountExistsImpl(p: evmc_host_context, address: var evmc_address): c99
 
 proc evmcGetStorageImpl(p: evmc_host_context, address: var evmc_address, key: var evmc_bytes32): evmc_bytes32 {.cdecl.} =
   let ctx = evmcHostContext(p)
-  if address in ctx.accounts:
-    result = ctx.accounts[address].storage[key]
+  ctx.accounts.withValue(address, acc):
+    acc[].storage.withValue(key, v):
+      result = v[]
 
 proc evmcSetStorageImpl(p: evmc_host_context, address: var evmc_address,
                         key, value: var evmc_bytes32): evmc_storage_status {.cdecl.} =
   let ctx = evmcHostContext(p)
 
-  if address in ctx.accounts:
-    var acc = ctx.accounts[address]
-    let prev_value = acc.storage.getOrDefault(key)
+  ctx.accounts.withValue(address, acc):
+    let prev_value = acc[].storage.getOrDefault(key)
     acc.storage[key] = value
     result = if prev_value == value: EVMC_STORAGE_ASSIGNED else: EVMC_STORAGE_MODIFIED
-  else:
+  do:
     var acc = Account()
     acc.storage[key] = value
     ctx.accounts[address] = acc
@@ -77,35 +77,32 @@ proc evmcSetStorageImpl(p: evmc_host_context, address: var evmc_address,
 
 proc evmcGetBalanceImpl(p: evmc_host_context, address: var evmc_address): evmc_uint256be {.cdecl.} =
   let ctx = evmcHostContext(p)
-  if address in ctx.accounts:
-    result = ctx.accounts[address].balance
+  ctx.accounts.withValue(address, acc):
+    result = acc[].balance
 
 proc evmcGetCodeSizeImpl(p: evmc_host_context, address: var evmc_address): csize_t {.cdecl.} =
   let ctx = evmcHostContext(p)
-  if address in ctx.accounts:
-    result = ctx.accounts[address].code.len.csize_t
+  ctx.accounts.withValue(address, acc):
+    result = acc[].code.len.csize_t
 
 proc evmcGetCodeHashImpl(p: evmc_host_context, address: var evmc_address): evmc_bytes32 {.cdecl.} =
   let ctx = evmcHostContext(p)
-  if address in ctx.accounts:
-    result = ctx.accounts[address].codeHash()
+  ctx.accounts.withValue(address, acc):
+    result = acc[].codeHash()
 
 proc evmcCopyCodeImpl(p: evmc_host_context, address: var evmc_address,
                             code_offset: csize_t, buffer_data: ptr byte,
                             buffer_size: csize_t): csize_t {.cdecl.} =
   let ctx = evmcHostContext(p)
 
-  if address notin ctx.accounts:
-    return 0
+  ctx.accounts.withValue(address, acc):
+    if code_offset.int >= acc[].code.len:
+      return 0
 
-  let acc = ctx.accounts[address]
-  if code_offset.int >= acc.code.len:
-    return 0
-
-  let n = min(buffer_size.int, acc.code.len - code_offset.int)
-  if n > 0:
-    copyMem(buffer_data, acc.code[code_offset].addr, n)
-  result = n.csize_t
+    let n = min(buffer_size.int, acc[].code.len - code_offset.int)
+    if n > 0:
+      copyMem(buffer_data, acc[].code[code_offset].addr, n)
+    result = n.csize_t
 
 proc evmcSelfdestructImpl(p: evmc_host_context, address, beneficiary: var evmc_address) {.cdecl.} =
   discard evmcHostContext(p)
@@ -126,14 +123,14 @@ proc evmcAccessStorageImpl(p: evmc_host_context, address: var evmc_address,
 proc evmcCallImpl(p: evmc_host_context, msg: var evmc_message): evmc_result {.cdecl.} =
   result = evmc_result(status_code: EVMC_REVERT, gas_left: msg.gas, output_data: msg.input_data, output_size: msg.input_size)
 
-proc evmcSetOptionImpl(vm: ptr evmc_vm, name, value: cstring): evmc_set_option_result {.cdecl.} =
+proc evmcSetOptionImpl(vm: ptr evmc_vm, name, acc: cstring): evmc_set_option_result {.cdecl.} =
   let name = $name
 
   if name == "verbose":
-    if value == nil:
+    if acc == nil:
       return EVMC_SET_OPTION_INVALID_VALUE
     try:
-      discard parseInt($value)
+      discard parseInt($acc)
       return EVMC_SET_OPTION_SUCCESS
     except:
       return EVMC_SET_OPTION_INVALID_VALUE
@@ -150,10 +147,10 @@ proc evmcExecuteImpl(vm: ptr evmc_vm, host: ptr evmc_host_interface,
   if (code_size.int == the_code.len) and equalMem(code, the_code[0].addr, code_size):
     let tx_context = ctx.tx_context
     let output_size = 20
-    var value, key: evmc_bytes32
-    value.bytes[31] = byte(tx_context.block_number)
+    var acc, key: evmc_bytes32
+    acc.bytes[31] = byte(tx_context.block_number)
     var dest = msg.recipient
-    discard p.evmcSetStorageImpl(dest, key, value)
+    discard p.evmcSetStorageImpl(dest, key, acc)
     var output_data = alloc(output_size)
     var bn = $tx_context.block_number
     zeroMem(output_data, output_size)
