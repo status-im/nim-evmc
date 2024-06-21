@@ -9,6 +9,8 @@
 
 {.push raises: [].}
 
+{.pragma: evmc_abi, cdecl, gcsafe, raises: [].}
+
 # The EVMC ABI version number of the interface declared in this file.
 #
 # The EVMC ABI version always equals the major version number of the EVMC project.
@@ -189,7 +191,7 @@ type
   #
   # @param      context  The pointer to the Host execution context.
   # @return              The transaction context.
-  evmc_get_tx_context_fn* = proc(context: evmc_host_context): evmc_tx_context {.cdecl.}
+  evmc_get_tx_context_fn* = proc(context: evmc_host_context): evmc_tx_context {.evmc_abi.}
 
   # Get block hash callback function.
   #
@@ -201,7 +203,7 @@ type
   # @param number   The block number.
   # @return         The block hash or null bytes
   #                 if the information about the block is not available.
-  evmc_get_block_hash_fn* = proc(context: evmc_host_context, number: int64): evmc_bytes32 {.cdecl.}
+  evmc_get_block_hash_fn* = proc(context: evmc_host_context, number: int64): evmc_bytes32 {.evmc_abi.}
 
   # The execution status code.
   #
@@ -323,7 +325,7 @@ type
   # The result is passed by pointer to avoid (shallow) copy of the ::evmc_result
   # struct. Think of this as the best possible C language approximation to
   # passing objects by reference.
-  evmc_release_result_fn* = proc(result: var evmc_result) {.cdecl, raises: [].}
+  evmc_release_result_fn* = proc(result: var evmc_result) {.evmc_abi, raises: [].}
 
   # The EVM code execution result.
   evmc_result* = object
@@ -404,7 +406,7 @@ type
   # @param context  The pointer to the Host execution context.
   # @param address  The address of the account the query is about.
   # @return         true if exists, false otherwise.
-  evmc_account_exists_fn* = proc(context: evmc_host_context, address: var evmc_address): c99bool {.cdecl.}
+  evmc_account_exists_fn* = proc(context: evmc_host_context, address: var evmc_address): c99bool {.evmc_abi.}
 
   #  Get storage callback function.
   #
@@ -417,7 +419,7 @@ type
   #                  if the account does not exist.
   evmc_get_storage_fn* = proc(context: evmc_host_context,
                               address: var evmc_address,
-                              key: var evmc_bytes32): evmc_bytes32 {.cdecl.}
+                              key: var evmc_bytes32): evmc_bytes32 {.evmc_abi.}
 
   # Get transient storage callback function.
   #
@@ -431,7 +433,7 @@ type
   #                 if the account does not exist.
   evmc_get_transient_storage_fn* = proc(context: evmc_host_context,
                                         address: var evmc_address,
-                                        key: var evmc_bytes32): evmc_bytes32 {.cdecl.}
+                                        key: var evmc_bytes32): evmc_bytes32 {.evmc_abi.}
 
   # The effect of an attempt to modify a contract storage item.
   #
@@ -520,7 +522,7 @@ type
   # @param value    The value to be stored.
   # @return         The effect on the storage item.
   evmc_set_storage_fn* = proc(context: evmc_host_context, address: var evmc_address,
-                              key, value: var evmc_bytes32): evmc_storage_status {.cdecl.}
+                              key, value: var evmc_bytes32): evmc_storage_status {.evmc_abi.}
 
 
   # Set transient storage callback function.
@@ -536,7 +538,7 @@ type
   # @param key      The index of the transient storage entry.
   # @param value    The value to be stored.
   evmc_set_transient_storage_fn* = proc(context: evmc_host_context, address: var evmc_address,
-                                        key, value: var evmc_bytes32) {.cdecl.}
+                                        key, value: var evmc_bytes32) {.evmc_abi.}
 
   # Get balance callback function.
   #
@@ -545,7 +547,7 @@ type
   # @param context  The pointer to the Host execution context.
   # @param address  The address of the account.
   # @return         The balance of the given account or 0 if the account does not exist.
-  evmc_get_balance_fn* = proc(context: evmc_host_context, address: var evmc_address): evmc_uint256be {.cdecl.}
+  evmc_get_balance_fn* = proc(context: evmc_host_context, address: var evmc_address): evmc_uint256be {.evmc_abi.}
 
   # Get code size callback function.
   #
@@ -555,7 +557,7 @@ type
   # @param context  The pointer to the Host execution context.
   # @param address  The address of the account.
   # @return         The size of the code in the account or 0 if the account does not exist.
-  evmc_get_code_size_fn* = proc(context: evmc_host_context, address: var evmc_address): csize_t {.cdecl.}
+  evmc_get_code_size_fn* = proc(context: evmc_host_context, address: var evmc_address): csize_t {.evmc_abi.}
 
   # Get code hash callback function.
   #
@@ -566,7 +568,7 @@ type
   # @param context  The pointer to the Host execution context.
   # @param address  The address of the account.
   # @return         The hash of the code in the account or null bytes if the account does not exist.
-  evmc_get_code_hash_fn* = proc(context: evmc_host_context, address: var evmc_address): evmc_bytes32 {.cdecl.}
+  evmc_get_code_hash_fn* = proc(context: evmc_host_context, address: var evmc_address): evmc_bytes32 {.evmc_abi.}
 
   # Copy code callback function.
   #
@@ -585,7 +587,7 @@ type
   # @return             The number of bytes copied to the buffer by the Client.
   evmc_copy_code_fn* = proc(context: evmc_host_context, address: var evmc_address,
                             code_offset: csize_t, buffer_data: ptr byte,
-                            buffer_size: csize_t): csize_t {.cdecl.}
+                            buffer_size: csize_t): csize_t {.evmc_abi.}
 
   # Selfdestruct callback function.
   #
@@ -595,7 +597,7 @@ type
   # @param context      The pointer to the Host execution context. See ::evmc_host_context.
   # @param address      The address of the contract to be selfdestructed.
   # @param beneficiary  The address where the remaining ETH is going to be transferred.
-  evmc_selfdestruct_fn* = proc(context: evmc_host_context, address, beneficiary: var evmc_address) {.cdecl.}
+  evmc_selfdestruct_fn* = proc(context: evmc_host_context, address, beneficiary: var evmc_address) {.evmc_abi.}
 
   # Log callback function.
   #
@@ -610,7 +612,7 @@ type
   # @param topics_count  The number of the topics. Valid values are between 0 and 4 inclusively.
   evmc_emit_log_fn* = proc(context: evmc_host_context, address: var evmc_address,
                            data: ptr byte, data_size: csize_t,
-                           topics: ptr evmc_bytes32, topics_count: csize_t) {.cdecl.}
+                           topics: ptr evmc_bytes32, topics_count: csize_t) {.evmc_abi.}
 
   # Access status per EIP-2929: Gas cost increases for state access opcodes.
   evmc_access_status* {.size: sizeof(cenum_small_range).} = enum
@@ -630,7 +632,7 @@ type
   # @return         EVMC_ACCESS_WARM if accessed_addresses already contained the address
   #                 or EVMC_ACCESS_COLD otherwise.
   evmc_access_account_fn* = proc(context: evmc_host_context,
-                                 address: var evmc_address): evmc_access_status {.cdecl.}
+                                 address: var evmc_address): evmc_access_status {.evmc_abi.}
 
   # Access storage callback function.
   #
@@ -643,14 +645,14 @@ type
   # @return         EVMC_ACCESS_WARM if accessed_storage_keys already contained the key
   #                 or EVMC_ACCESS_COLD otherwise.
   evmc_access_storage_fn* = proc(context: evmc_host_context, address: var evmc_address,
-                                 key: var evmc_bytes32): evmc_access_status {.cdecl.}
+                                 key: var evmc_bytes32): evmc_access_status {.evmc_abi.}
 
   # Pointer to the callback function supporting EVM calls.
   #
   # @param context  The pointer to the Host execution context.
   # @param msg      The call parameters.
   # @return         The result of the call.
-  evmc_call_fn* = proc(context: evmc_host_context, msg: var evmc_message): evmc_result {.cdecl.}
+  evmc_call_fn* = proc(context: evmc_host_context, msg: var evmc_message): evmc_result {.evmc_abi.}
 
   # The Host interface.
   #
@@ -710,7 +712,7 @@ type
   # Destroys the VM instance.
   #
   # @param vm  The VM instance to be destroyed.
-  evmc_destroy_fn* = proc(vm: ptr evmc_vm) {.cdecl.}
+  evmc_destroy_fn* = proc(vm: ptr evmc_vm) {.evmc_abi.}
 
   # Possible outcomes of evmc_set_option.
   evmc_set_option_result* {.size: sizeof(cenum_small_range).} = enum
@@ -729,7 +731,7 @@ type
   # @param name   The option name. NULL-terminated string. Cannot be NULL.
   # @param value  The new option value. NULL-terminated string. Cannot be NULL.
   # @return       The outcome of the operation.
-  evmc_set_option_fn* = proc(vm: ptr evmc_vm, name, value: cstring): evmc_set_option_result {.cdecl.}
+  evmc_set_option_fn* = proc(vm: ptr evmc_vm, name, value: cstring): evmc_set_option_result {.evmc_abi.}
 
   # EVM revision.
   #
@@ -812,7 +814,7 @@ type
   evmc_execute_fn* = proc(vm: ptr evmc_vm, host: ptr evmc_host_interface,
                           context: evmc_host_context, rev: evmc_revision,
                           msg: var evmc_message, code: ptr byte, code_size: csize_t):
-                            evmc_result {.cdecl, raises: [].}
+                            evmc_result {.evmc_abi.}
 
   # Possible capabilities of a VM. (Bit shift positions).
   evmc_capability_bit_shifts* = enum
@@ -842,7 +844,7 @@ type
   #
   # @param vm  The VM instance.
   # @return    The supported capabilities of the VM. @see evmc_capabilities.
-  evmc_get_capabilities_fn* = proc(vm: ptr evmc_vm): evmc_capabilities {.cdecl.}
+  evmc_get_capabilities_fn* = proc(vm: ptr evmc_vm): evmc_capabilities {.evmc_abi.}
 
   # The VM instance.
   #
@@ -905,7 +907,7 @@ type
   # "beta-interpreter" implementation may be named libbeta-interpreter.so.
   #
   # @return  The VM instance or NULL indicating instance creation failure.
-  evmc_create_vm_name_fn* = proc(): ptr evmc_vm {.cdecl, raises:[].}
+  evmc_create_vm_name_fn* = proc(): ptr evmc_vm {.evmc_abi, raises:[].}
 
 const
   # The maximum EVM revision supported.
