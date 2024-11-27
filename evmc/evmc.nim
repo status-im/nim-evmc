@@ -71,7 +71,7 @@ type
     EVMC_CALLCODE = 2     # Request CALLCODE.
     EVMC_CREATE = 3       # Request CREATE.
     EVMC_CREATE2 = 4      # Request CREATE2. Valid since Constantinople.
-    EVMC_EOFCREATE = 5    # Request EOFCREATE. Valid since Prague.
+    EVMC_EOFCREATE = 5    # Request EOFCREATE. Valid since Osaka.
 
   # The flags for ::evmc_message. (Bit shift positions).
   evmc_flag_bit_shifts* = enum
@@ -654,6 +654,21 @@ type
   # @return         The result of the call.
   evmc_call_fn* = proc(context: evmc_host_context, msg: var evmc_message): evmc_result {.evmc_abi.}
 
+  # Get delegate address function.
+  #
+  # This callback function is used by a VM to get target address of EIP-7702 delegation designation,
+  # in case it is set for given account.
+  # If account's code does not contain delegation designation, this function returns address
+  # 0x0000000000000000000000000000000000000000.
+  #
+  # @param context  The pointer to the Host execution context.
+  # @param address  The address of the account.
+  # @return         The address of delegation designation target account
+  #                 or 0 if delegation is not set.
+  #
+  evmc_get_delegate_address_fn* = proc(context: evmc_host_context,
+                                       address: var evmc_address): evmc_address {.evmc_abi.}
+
   # The Host interface.
   #
   # The set of all callback functions expected by VM instances. This is C
@@ -708,6 +723,9 @@ type
 
     # Set transient storage callback function.
     set_transient_storage*: evmc_set_transient_storage_fn
+
+    # Get delegate address function.
+    get_delegate_address*: evmc_get_delegate_address_fn
 
   # Destroys the VM instance.
   #
@@ -788,12 +806,16 @@ type
     EVMC_SHANGHAI = 11
 
     # The Cancun revision.
-    # The future next revision after Shanghai.
+    # https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/cancun.md
     EVMC_CANCUN = 12
 
     # The Prague revision.
     # The future next revision after Cancun.
     EVMC_PRAGUE = 13
+
+    # The Osaka revision.
+    # The future next revision after Prague.
+    EVMC_OSAKA = 14
 
   # Executes the given code using the input from the message.
   #
@@ -911,11 +933,11 @@ type
 
 const
   # The maximum EVM revision supported.
-  EVMC_MAX_REVISION* = EVMC_PRAGUE
+  EVMC_MAX_REVISION* = EVMC_OSAKA
 
   # The latest known EVM revision with finalized specification.
   # This is handy for EVM tools to always use the latest revision available.
-  EVMC_LATEST_STABLE_REVISION* = EVMC_SHANGHAI
+  EVMC_LATEST_STABLE_REVISION* = EVMC_CANCUN
 
 # Check small-range enums have C `int` size, so the definitions in this file
 # are binary compatible with EVMC API in `evmc.h`.  On almost all targets it's
@@ -935,7 +957,6 @@ typedef char enum_small_range_size_check[1-2*!(
 #   clang: error: linker command failed with exit code 1 (use -v to see invocation)
 #
 proc toString(a: evmc_flags | evmc_capabilities): string =
-  var firstElement = true
   for value in items(a):
     result.add(if result.len == 0: "{" else: ", ")
     result.addQuoted(value)
