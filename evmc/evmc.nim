@@ -75,7 +75,8 @@ type
 
   # The flags for ::evmc_message. (Bit shift positions).
   evmc_flag_bit_shifts* = enum
-    EVMC_STATIC = 0       # Static call mode.
+    EVMC_STATIC = 1       # Static call mode.
+    EVMC_DELEGATED = 2    # Delegated call mode (EIP-7702). Valid since Prague.
 
   # The flags for ::evmc_message. (Nim bitset).
   evmc_flags* {.size: sizeof(uint32).} = set[evmc_flag_bit_shifts]
@@ -87,7 +88,6 @@ type
     kind*: evmc_call_kind
 
     # Additional flags modifying the call execution behavior.
-    # In the current version the only valid values are ::EVMC_STATIC or 0.
     flags*: evmc_flags
 
     # The call depth.
@@ -809,13 +809,17 @@ type
     # https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/cancun.md
     EVMC_CANCUN = 12
 
-    # The Prague revision.
-    # The future next revision after Cancun.
+    # The Prague / Pectra revision.
+    # https://eips.ethereum.org/EIPS/eip-7600
     EVMC_PRAGUE = 13
 
-    # The Osaka revision.
-    # The future next revision after Prague.
+    # The Osaka / Fusaka revision.
+    # https://eips.ethereum.org/EIPS/eip-7607
     EVMC_OSAKA = 14
+
+    # The unspecified EVM revision used for EVM implementations to expose
+    # experimental features.
+    EVMC_EXPERIMENTAL = 15
 
   # Executes the given code using the input from the message.
   #
@@ -933,7 +937,7 @@ type
 
 const
   # The maximum EVM revision supported.
-  EVMC_MAX_REVISION* = EVMC_OSAKA
+  EVMC_MAX_REVISION* = EVMC_EXPERIMENTAL
 
   # The latest known EVM revision with finalized specification.
   # This is handy for EVM tools to always use the latest revision available.
