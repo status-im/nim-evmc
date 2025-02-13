@@ -61,8 +61,8 @@ proc copyCode*(ctx: HostContext, address: var evmc_address, codeOffset: int = 0)
 proc copyCode*(ctx: HostContext, address: var evmc_address, codeOffset: int, output: ptr byte, output_len: int): int =
   ctx.host.copy_code(ctx.context, address, codeOffset.csize_t, output, output_len.csize_t).int
 
-proc selfdestruct*(ctx: HostContext, address, beneficiary: var evmc_address) =
-  ctx.host.selfdestruct(ctx.context, address, beneficiary)
+proc selfdestruct*(ctx: HostContext, address, beneficiary: var evmc_address): bool =
+  ctx.host.selfdestruct(ctx.context, address, beneficiary).bool
 
 proc emitLog*(ctx: HostContext, address: var evmc_address, data: openArray[byte], topics: openArray[evmc_bytes32]) =
   ctx.host.emit_log(ctx.context, address, data[0].unsafeAddr, data.len.csize_t, topics[0].unsafeAddr, topics.len.csize_t)
