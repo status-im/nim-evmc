@@ -157,7 +157,7 @@ template runTest(testName: string, create_vm, get_host_interface, create_host_co
       check acode == bcode
 
     test "selfdestruct":
-      hc.selfdestruct(address, address)
+      check hc.selfdestruct(address, address) == true
 
     test "emitlog":
       hc.emitLog(address, code, [ahash])

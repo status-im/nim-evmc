@@ -597,7 +597,9 @@ type
   # @param context      The pointer to the Host execution context. See ::evmc_host_context.
   # @param address      The address of the contract to be selfdestructed.
   # @param beneficiary  The address where the remaining ETH is going to be transferred.
-  evmc_selfdestruct_fn* = proc(context: evmc_host_context, address, beneficiary: var evmc_address) {.evmc_abi.}
+  # @return             The information if the given address has not been registered as
+  #                     selfdestructed yet. True if registered for the first time, false otherwise.
+  evmc_selfdestruct_fn* = proc(context: evmc_host_context, address, beneficiary: var evmc_address): c99bool {.evmc_abi.}
 
   # Log callback function.
   #

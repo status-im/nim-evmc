@@ -104,8 +104,9 @@ proc evmcCopyCodeImpl(p: evmc_host_context, address: var evmc_address,
       copyMem(buffer_data, acc[].code[code_offset].addr, n)
     result = n.csize_t
 
-proc evmcSelfdestructImpl(p: evmc_host_context, address, beneficiary: var evmc_address) {.cdecl.} =
+proc evmcSelfdestructImpl(p: evmc_host_context, address, beneficiary: var evmc_address): c99bool {.cdecl.} =
   discard evmcHostContext(p)
+  true
 
 proc evmcEmitLogImpl(p: evmc_host_context, address: var evmc_address,
                            data: ptr byte, data_size: csize_t,
